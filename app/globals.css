@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-playfair: 'Playfair Display', serif;
+  --font-inter: 'Inter', sans-serif;
+  --gold: #C9A84C;
+  --gold-light: #E0C97A;
+  --dark: #050810;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: #050810;
+  color: #e5e7eb;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9A84C;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E0C97A;
+}
+
+/* Selection */
+::selection {
+  background: rgba(201, 168, 76, 0.3);
+  color: #E0C97A;
+}
+
+/* Gold text gradient utility */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #C9A84C 0%, #E0C97A 50%, #9B7B2E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  position: relative;
+}
+
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Animated border */
+.border-gold-animated {
+  position: relative;
+}
+
+.border-gold-animated::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #C9A84C, #E0C97A);
+  transition: width 0.4s ease;
+}
+
+.border-gold-animated:hover::after {
+  width: 100%;
+}
+
+/* Audio player custom */
+audio::-webkit-media-controls-panel {
+  background-color: #1A2035;
+}
+
+audio::-webkit-media-controls-play-button {
+  background-color: #C9A84C;
+  border-radius: 50%;
+}
