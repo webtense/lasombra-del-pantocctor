@@ -32,3 +32,6 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 .env*
+
+# Large audiobook files (served directly from Vercel public/)
+public/audiolibro_premium.m4b
