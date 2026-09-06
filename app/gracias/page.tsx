@@ -3,28 +3,56 @@
 import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { trackEvent } from '@/lib/track-event'
+import { trackPurchase, trackClickAmazon } from '@/lib/analytics'
 
 function GraciasContent() {
   const params = useSearchParams()
   const sessionId = params.get('session_id') || ''
+  // Enlace directo desde el email de compra (lib/brevo.ts): ya trae el
+  // dtoken hecho, sin pasar por verify-payment.
+  const tokenFromUrl = params.get('token') || ''
   const [status, setStatus] = useState<'loading' | 'valid' | 'invalid'>('loading')
   const [email, setEmail] = useState('')
+  const [dtoken, setDtoken] = useState('')
   const trackedRef = useRef(false)
 
   useEffect(() => {
+    if (tokenFromUrl) {
+      setDtoken(tokenFromUrl)
+      setStatus('valid')
+      return
+    }
+
     if (!sessionId) { setStatus('invalid'); return }
+
+    // Fallback: el webhook de Stripe es asíncrono y puede no haber llegado
+    // todavía. verify-payment comprueba el pago directamente contra Stripe
+    // y registra la compra (idempotente) si hace falta, así que siempre
+    // puede devolver un dtoken válido aunque el webhook vaya con retraso.
     fetch(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`)
       .then(r => r.json())
-      .then(d => {
-        if (d.valid) {
+      .then(async d => {
+        if (d.valid && d.dtoken) {
           setStatus('valid')
           setEmail(d.customerEmail || '')
+          setDtoken(d.dtoken)
           if (!trackedRef.current) {
             trackedRef.current = true
-            trackEvent('purchase', {
+            // Si Stripe no devolvió el importe de la sesión (ej. modo dev sin claves),
+            // se obtiene el precio real vigente vía /api/price en lugar de hardcodearlo.
+            let value = d.amount ? d.amount / 100 : null
+            if (value === null) {
+              try {
+                const priceRes = await fetch('/api/price')
+                const priceData = await priceRes.json()
+                value = priceData.amount
+              } catch {
+                value = null
+              }
+            }
+            trackPurchase({
               transaction_id: sessionId,
-              value: d.amount ? d.amount / 100 : 12.99,
+              ...(value !== null && { value }),
               currency: 'EUR',
               items: [{ item_name: 'La Sombra del Pantocrátor — Ebook + Audiolibro' }],
             })
@@ -34,7 +62,7 @@ function GraciasContent() {
         }
       })
       .catch(() => setStatus('invalid'))
-  }, [sessionId])
+  }, [sessionId, tokenFromUrl])
 
   if (status === 'loading') {
     return (
@@ -70,16 +98,27 @@ function GraciasContent() {
 
       <h1 className="font-serif text-3xl text-white mb-2">¡Gracias por tu compra!</h1>
       {email && <p className="text-gray-500 text-sm mb-6">Confirmación enviada a {email}</p>}
-      <p className="text-gray-400 mb-8">Aquí tienes tus descargas. Los enlaces son de un solo uso.</p>
+      <p className="text-gray-400 mb-8">Aquí tienes tus descargas (hasta 5 veces por formato).</p>
 
       <div className="space-y-3 mb-8">
-        <a href={`/api/download/epub?session_id=${encodeURIComponent(sessionId)}`}
+        <a href={`/api/download/epub?dtoken=${encodeURIComponent(dtoken)}`}
           className="flex items-center justify-between w-full bg-[#C9A84C] hover:bg-[#E0C97A]
                      text-[#050810] font-bold py-4 px-6 rounded-lg transition-colors">
           <span>📚 Descargar EPUB</span>
-          <span className="text-sm font-normal opacity-70">~276 KB</span>
         </a>
-        <a href={`/api/download/audio?session_id=${encodeURIComponent(sessionId)}`}
+        <a href={`/api/download/pdf?dtoken=${encodeURIComponent(dtoken)}`}
+          className="flex items-center justify-between w-full border border-[#C9A84C]/50
+                     hover:border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C]/10
+                     font-bold py-4 px-6 rounded-lg transition-colors">
+          <span>📄 Descargar PDF</span>
+        </a>
+        <a href={`/api/download/mobi?dtoken=${encodeURIComponent(dtoken)}`}
+          className="flex items-center justify-between w-full border border-[#C9A84C]/50
+                     hover:border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C]/10
+                     font-bold py-4 px-6 rounded-lg transition-colors">
+          <span>📖 Descargar MOBI (Kindle)</span>
+        </a>
+        <a href={`/api/download/audio_m4b?dtoken=${encodeURIComponent(dtoken)}`}
           className="flex items-center justify-between w-full border border-[#C9A84C]/50
                      hover:border-[#C9A84C] text-[#C9A84C] hover:bg-[#C9A84C]/10
                      font-bold py-4 px-6 rounded-lg transition-colors">
@@ -92,6 +131,7 @@ function GraciasContent() {
         <p className="text-white text-sm font-semibold mb-2">¿Te ha gustado? 🙏</p>
         <p className="text-gray-400 text-sm mb-3">Una reseña en Amazon ayuda enormemente a llegar a más lectores.</p>
         <a href="https://www.amazon.es/review/create-review" target="_blank" rel="noopener noreferrer"
+          onClick={() => trackClickAmazon()}
           className="text-[#FF9900] hover:text-[#FFA520] text-sm font-semibold transition-colors">
           Dejar reseña en Amazon →
         </a>

@@ -3,13 +3,19 @@ import AudioPlayer from '@/components/AudioPlayer'
 import Link from 'next/link'
 import BuyButton from '@/components/BuyButton'
 import PageEvent from '@/components/PageEvent'
+import { getBookPrice } from '@/lib/stripe-price'
 
 export const metadata: Metadata = {
   title: 'La Historia — La Sombra del Pantocrátor',
   description: 'Descubre La Sombra del Pantocrátor de Andrés Sánchez Serrano. Thriller tecnológico en el Pirineo catalán.',
 }
 
-export default function ResumenPage() {
+// Revalida la página periódicamente para que el precio de Stripe no quede
+// congelado en el valor del último build (ISR).
+export const revalidate = 3600
+
+export default async function ResumenPage() {
+  const { formatted: price } = await getBookPrice()
   return (
     <div className="min-h-screen bg-[#050810] pt-24 pb-24 md:pb-20">
       <PageEvent event="view_book" />
@@ -82,7 +88,7 @@ export default function ResumenPage() {
           <p className="text-gray-400 mb-2">¿Quieres continuar la historia?</p>
           <h3 className="font-serif text-2xl text-white mb-6">Compra el libro completo</h3>
           <div className="flex flex-col items-center gap-3">
-            <BuyButton label="Comprar — 12,99 €" size="lg" />
+            <BuyButton label={`Comprar — ${price}`} size="lg" />
             <p className="text-gray-600 text-xs">EPUB + Audiolibro completo. Un pago. Tuyo para siempre.</p>
           </div>
           <div className="mt-6 pt-5 border-t border-white/5">

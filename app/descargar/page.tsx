@@ -3,13 +3,19 @@ import BuyButton from '@/components/BuyButton'
 import AudioPlayer from '@/components/AudioPlayer'
 import Link from 'next/link'
 import PageEvent from '@/components/PageEvent'
+import { getBookPrice } from '@/lib/stripe-price'
 
 export const metadata: Metadata = {
   title: 'Comprar — La Sombra del Pantocrátor',
   description: 'Compra el ebook y audiolibro completo de La Sombra del Pantocrátor. Pago único, sin suscripción.',
 }
 
-export default function DescargarPage() {
+// Revalida la página periódicamente para que el precio de Stripe no quede
+// congelado en el valor del último build (ISR).
+export const revalidate = 3600
+
+export default async function DescargarPage() {
+  const { formatted: price } = await getBookPrice()
   return (
     <div className="min-h-screen bg-[#050810] pt-24 pb-20">
       <PageEvent event="view_book" />
@@ -32,7 +38,7 @@ export default function DescargarPage() {
           <div className="flex items-start gap-4 mb-6">
             {/* Portada miniatura */}
             <img
-              src="/portada_v25.png"
+              src="/portada.jpg"
               alt="Portada"
               className="w-20 h-auto rounded-lg flex-shrink-0 opacity-90"
             />
@@ -57,7 +63,7 @@ export default function DescargarPage() {
 
           {/* Precio y botón */}
           <div className="text-center py-4 border-t border-[#C9A84C]/10">
-            <div className="text-3xl font-bold text-[#C9A84C] mb-1">12,99 €</div>
+            <div className="text-3xl font-bold text-[#C9A84C] mb-1">{price}</div>
             <p className="text-gray-600 text-xs mb-5">Un pago. Tuyo para siempre.</p>
             <p className="text-gray-500 text-sm mb-4">
               Si no has leído los 3 primeros capítulos,{' '}
@@ -66,7 +72,7 @@ export default function DescargarPage() {
               </Link>
               .
             </p>
-            <BuyButton label="Compra aquí → 12,99 € vía Stripe" size="lg" />
+            <BuyButton label={`Compra aquí → ${price} vía Stripe`} size="lg" />
           </div>
         </div>
 

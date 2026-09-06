@@ -3,13 +3,15 @@ import { useState } from 'react'
 import { trackEvent } from '@/lib/track-event'
 
 interface BuyButtonProps {
-  label?: string
+  // Sin valor por defecto a propósito: el precio viene siempre de Stripe
+  // (vía lib/stripe-price.ts en el Server Component padre), nunca hardcodeado aquí.
+  label: string
   className?: string
   size?: 'sm' | 'md' | 'lg'
 }
 
 export default function BuyButton({
-  label = 'Comprar — 12,99 €',
+  label,
   className = '',
   size = 'md',
 }: BuyButtonProps) {

@@ -2,8 +2,14 @@ import Link from 'next/link'
 import BookCover from '@/components/BookCover'
 import BuyButton from '@/components/BuyButton'
 import TrackedLink from '@/components/TrackedLink'
+import { getBookPrice } from '@/lib/stripe-price'
 
-export default function HomePage() {
+// Revalida la página periódicamente para que el precio de Stripe no quede
+// congelado en el valor del último build (ISR).
+export const revalidate = 3600
+
+export default async function HomePage() {
+  const { formatted: price } = await getBookPrice()
   return (
     <div className="min-h-screen bg-[#050810]">
       {/* Hero Section */}
@@ -89,10 +95,10 @@ export default function HomePage() {
 
               {/* CTA principal */}
               <p className="text-[#C9A84C] text-sm font-semibold tracking-wide uppercase mb-3">
-                Ebook + Audiolibro: 12,99 €
+                Ebook + Audiolibro: {price}
               </p>
               <div className="flex flex-wrap gap-4 items-center">
-                <BuyButton label="Comprar — 12,99 €" size="lg" />
+                <BuyButton label={`Comprar — ${price}`} size="lg" />
                 <TrackedLink
                   event="view_sample_cta"
                   href="/muestra"
@@ -243,7 +249,7 @@ export default function HomePage() {
           }}
         >
           <h2 className="font-serif text-3xl md:text-4xl text-white mb-4">
-            Ebook + Audiolibro: 12,99 €
+            Ebook + Audiolibro: {price}
           </h2>
           <p className="text-gray-400 mb-8 max-w-lg mx-auto">
             EPUB + audiolibro completo (8h 11min) en un único pago. Sin DRM, sin suscripción,

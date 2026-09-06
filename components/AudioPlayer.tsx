@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { trackEvent } from '@/lib/track-event'
+import { trackListenSample } from '@/lib/analytics'
 
 interface AudioPlayerProps {
   src: string
@@ -52,7 +52,7 @@ export default function AudioPlayer({ src, title = 'Muestra de audio', descripti
     } else {
       if (!trackedRef.current) {
         trackedRef.current = true
-        trackEvent('listen_sample', { title })
+        trackListenSample({ title })
       }
       setLoading(true)
       await audio.play()

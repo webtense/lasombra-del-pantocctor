@@ -7,6 +7,11 @@ import Footer from '@/components/Footer'
 import TrackPageView from '@/components/TrackPageView'
 import BottomNav from '@/components/BottomNav'
 import { GA_MEASUREMENT_ID } from '@/lib/gtag'
+import { getBookPrice } from '@/lib/stripe-price'
+
+// Revalida la metadata periódicamente para que el precio de Stripe en la
+// descripción no quede congelado en el valor del último build (ISR).
+export const revalidate = 3600
 
 const inter = Inter({
   subsets: ['latin'],
@@ -20,35 +25,38 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
-  title: 'La Sombra del Pantocrátor — Andrés Sánchez Serrano',
-  icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
-  description:
-    'Bruno Martí llega a la Vall de Boí siguiendo una pista imposible: una nota con tres nombres y el de un hotel que no debería existir. Ebook + Audiolibro (8h 11min) por 12,99 €. Un thriller tecnológico de Andrés Sánchez Serrano.',
-  keywords: ['thriller tecnológico', 'novela negra', 'Vall de Boí', 'libro', 'audiolibro'],
-  authors: [{ name: 'Andrés Sánchez Serrano' }],
-  openGraph: {
-    title: 'La Sombra del Pantocrátor',
-    description: 'Un thriller tecnológico. Bajo la nieve, el románico y la piedra se esconde el Pantocrátor.',
-    type: 'book',
-    locale: 'es_ES',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'La Sombra del Pantocrátor',
-    description: 'Un thriller tecnológico de Andrés Sánchez Serrano.',
-  },
-  // Verificación de propiedad en Google Search Console — NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-  // (contenido del meta tag que da Search Console al añadir la propiedad por "etiqueta HTML").
-  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
-    verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
-  }),
+export async function generateMetadata(): Promise<Metadata> {
+  const { formatted: price } = await getBookPrice()
+  return {
+    title: 'La Sombra del Pantocrátor — Andrés Sánchez Serrano',
+    icons: {
+      icon: [
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', sizes: '32x32' },
+      ],
+      apple: '/apple-touch-icon.png',
+    },
+    description:
+      `Bruno Martí llega a la Vall de Boí siguiendo una pista imposible: una nota con tres nombres y el de un hotel que no debería existir. Ebook + Audiolibro (8h 11min) por ${price}. Un thriller tecnológico de Andrés Sánchez Serrano.`,
+    keywords: ['thriller tecnológico', 'novela negra', 'Vall de Boí', 'libro', 'audiolibro'],
+    authors: [{ name: 'Andrés Sánchez Serrano' }],
+    openGraph: {
+      title: 'La Sombra del Pantocrátor',
+      description: 'Un thriller tecnológico. Bajo la nieve, el románico y la piedra se esconde el Pantocrátor.',
+      type: 'book',
+      locale: 'es_ES',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'La Sombra del Pantocrátor',
+      description: 'Un thriller tecnológico de Andrés Sánchez Serrano.',
+    },
+    // Verificación de propiedad en Google Search Console — NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    // (contenido del meta tag que da Search Console al añadir la propiedad por "etiqueta HTML").
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+      verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
+    }),
+  }
 }
 
 export default function RootLayout({

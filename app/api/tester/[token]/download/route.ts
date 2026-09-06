@@ -3,6 +3,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
 import { getServerSupabase } from '@/lib/supabase'
+import { getSignedAudiobookUrl } from '@/lib/vps-audio-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,7 +66,10 @@ export async function GET(
 
   if (fileType === 'pdf') {
     try {
-      const pdfPath = join(process.cwd(), 'app/api/tester/_data/libro.pdf')
+      // Master correcto (REVISION 5 FINAL, A4) — el antiguo app/api/tester/_data/libro.pdf
+      // era el interior de maquetación KDP (6x9in, pensado para imprenta, no para leer en
+      // pantalla). Ver supabase-schema-purchases.sql / app/api/download/_data para el origen.
+      const pdfPath = join(process.cwd(), 'app/api/download/_data/libro.pdf')
       const data = readFileSync(pdfPath)
       return new NextResponse(data, {
         headers: {
@@ -79,7 +83,14 @@ export async function GET(
     }
   }
 
-  // audio: mismo enlace que usan los compradores (zip/carpeta con los MP3)
+  // audio: mismo mecanismo que usan los compradores (URL firmada al VPS,
+  // con fallback a DRIVE_AUDIO_URL si el secreto aún no está en Vercel)
+  const quality = req.nextUrl.searchParams.get('quality') === 'premium' ? 'premium' : 'normal'
+  const signedUrl = getSignedAudiobookUrl(quality)
+  if (signedUrl) {
+    return NextResponse.redirect(signedUrl, { status: 302 })
+  }
+
   const driveUrl = process.env.DRIVE_AUDIO_URL
   if (!driveUrl) {
     return NextResponse.json({ error: 'Audiolibro no disponible aún' }, { status: 503 })

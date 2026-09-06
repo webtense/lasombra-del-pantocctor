@@ -3,11 +3,16 @@ import Link from 'next/link'
 import AudioPlayer from '@/components/AudioPlayer'
 import MuestraLeadForm from '@/components/MuestraLeadForm'
 import PageEvent from '@/components/PageEvent'
+import { getBookPrice } from '@/lib/stripe-price'
 
 export const metadata: Metadata = {
   title: 'Muestra gratis — La Sombra del Pantocrátor',
   description: 'Lee gratis los 3 primeros capítulos + escucha la primera escena de audio. Conoce a Bruno Martí. Descubre el misterio del Pantocrátor. Sin compromiso.',
 }
+
+// Revalida la página periódicamente para que el precio de Stripe no quede
+// congelado en el valor del último build (ISR).
+export const revalidate = 3600
 
 // Texto real extraído de DEFINITIVO/EDICION_FINAL/la-sombra-del-pantocrator-edicion-final.md
 // Capítulo 1 completo (501 palabras) · Capítulos 2 y 3 recortados a ~500 palabras cada uno.
@@ -60,10 +65,11 @@ const sampleChapters = [
   },
 ]
 
-export default function MuestraPage() {
+export default async function MuestraPage() {
+  const { formatted: price } = await getBookPrice()
   return (
     <div className="min-h-screen bg-[#050810] pt-24 pb-24">
-      <PageEvent event="view_sample" />
+      <PageEvent event="read_sample" />
       <div className="max-w-3xl mx-auto px-6">
 
         {/* Header */}
@@ -132,7 +138,7 @@ export default function MuestraPage() {
         {/* CTA secundario */}
         <div className="mt-10 text-center bg-gradient-to-b from-[#0D1117] to-[#050810] border border-[#C9A84C]/20 rounded-xl p-8">
           <p className="text-gray-400 mb-2">¿Ya quieres saber cómo continúa?</p>
-          <h3 className="font-serif text-2xl text-white mb-6">Ebook + Audiolibro completo — 12,99 €</h3>
+          <h3 className="font-serif text-2xl text-white mb-6">Ebook + Audiolibro completo — {price}</h3>
           <Link
             href="/descargar"
             className="inline-flex items-center justify-center gap-2 font-bold rounded-lg bg-[#C9A84C] hover:bg-[#E0C97A] text-[#050810] py-4 px-8 text-lg transition-colors"
