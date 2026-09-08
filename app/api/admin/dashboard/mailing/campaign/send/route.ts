@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/admin-session'
-import { logAdminAction } from '@/lib/admin-audit'
+import { logAdminActionAwaited } from '@/lib/admin-audit'
 import { isBrevoConfigured, sendCampaignNow } from '@/lib/brevo-marketing'
 
 export const dynamic = 'force-dynamic'
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     // El intento fallido también se audita: si Brevo rechaza el envío (tope
     // diario agotado, remitente no verificado…) queda constancia de que se
     // llegó a pulsar el botón.
-    logAdminAction('campaign_send_failed', {
+    await logAdminActionAwaited('campaign_send_failed', {
       actor: username || 'admin',
       target: `brevo:campaign:${campaignId}`,
       details: { campaignId, recipientCount, error: sent.error },
@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: sent.error }, { status: 502 })
   }
 
-  logAdminAction('campaign_sent', {
+  // Esperado a propósito: un envío no se puede deshacer, así que su rastro
+  // en la auditoría no puede depender de que la lambda siga viva.
+  await logAdminActionAwaited('campaign_sent', {
     actor: username || 'admin',
     target: `brevo:campaign:${campaignId}`,
     details: { campaignId, recipientCount },

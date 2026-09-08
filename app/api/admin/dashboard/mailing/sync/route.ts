@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/admin-session'
-import { logAdminAction } from '@/lib/admin-audit'
+import { logAdminActionAwaited } from '@/lib/admin-audit'
 import { collectSources, type SourceId } from '@/lib/mailing-sources'
 import { dedupeEmails, getOrCreateList, isBrevoConfigured, syncContactsToBrevo } from '@/lib/brevo-marketing'
 
@@ -85,7 +85,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: sync.error, list: list.data }, { status: 502 })
   }
 
-  logAdminAction('mailing_sync', {
+  // Esperado, no fire-and-forget: en serverless la escritura se pierde si la
+  // función se congela al responder (ver lib/admin-audit.ts).
+  await logAdminActionAwaited('mailing_sync', {
     actor: username || 'admin',
     target: `brevo:list:${list.data.id}`,
     details: {

@@ -52,9 +52,31 @@ export function adminIpHash(req?: HeaderSource | null): string | null {
 
 // Nunca lanza y nunca devuelve una promesa que el llamante deba esperar.
 export function logAdminAction(action: AdminAuditAction, opts: LogOptions): void {
+  void writeAuditRow(action, opts)
+}
+
+// Igual que logAdminAction pero ESPERABLE. Tampoco lanza nunca.
+//
+// Existe porque en Vercel la función serverless puede congelarse en cuanto
+// devuelve la respuesta, y una escritura fire-and-forget que aún no haya
+// terminado se pierde. Se comprobó en producción: la fila de campaign_sent
+// llegó varios segundos DESPUÉS de que el endpoint respondiera.
+//
+// Para telemetría eso da igual, pero no para las dos acciones de mailing:
+// un envío de campaña es irreversible y visible por terceros, así que su
+// rastro no puede ser "casi siempre". Ahí se espera antes de responder; el
+// resto del panel sigue usando la versión fire-and-forget.
+export async function logAdminActionAwaited(
+  action: AdminAuditAction,
+  opts: LogOptions
+): Promise<void> {
+  await writeAuditRow(action, opts)
+}
+
+function writeAuditRow(action: AdminAuditAction, opts: LogOptions): Promise<void> {
   try {
     const sb = getServerSupabase()
-    if (!sb) return
+    if (!sb) return Promise.resolve()
 
     // `actor` puede ser entrada de usuario sin validar (en login_failed es el
     // username que tecleó quien intentaba entrar), así que se recorta aquí
@@ -62,7 +84,7 @@ export function logAdminAction(action: AdminAuditAction, opts: LogOptions): void
     const actor = (opts.actor || '').toString().trim().slice(0, 200) || 'desconocido'
     const target = opts.target ? opts.target.toString().trim().slice(0, 300) : null
 
-    Promise.resolve(
+    return Promise.resolve(
       sb.rpc('log_admin_action', {
         p_actor: actor,
         p_action: action,
@@ -79,5 +101,6 @@ export function logAdminAction(action: AdminAuditAction, opts: LogOptions): void
       })
   } catch (err) {
     console.error('[admin-audit]', action, err instanceof Error ? err.message : err)
+    return Promise.resolve()
   }
 }
