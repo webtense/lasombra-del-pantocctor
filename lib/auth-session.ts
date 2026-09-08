@@ -21,12 +21,29 @@ interface JWTPayload {
   exp: number
 }
 
+// Fail-closed: AUTH_SESSION_SECRET es OBLIGATORIO. Antes caía en cascada a
+// ADMIN_PASSWORD y, en última instancia, a un literal en el repo. La variable
+// solo estaba puesta en Production, así que TODO despliegue de Preview firmaba
+// las sesiones de comprador con la contraseña de admin o con el literal —
+// cualquiera con acceso al código podía forjar una cookie lsp_auth_token
+// válida y entrar en /panel. Ahora, si la variable no está puesta, se lanza:
+// mejor que el despliegue falle de forma visible a que funcione en silencio
+// con un secreto conocido.
 function getSecret(): string {
-  return (
-    process.env.AUTH_SESSION_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    'lsp-auth-dev-secret-cambiar-en-produccion'
-  )
+  const secret = process.env.AUTH_SESSION_SECRET
+  if (!secret) {
+    throw new Error(
+      'AUTH_SESSION_SECRET no está configurado: la sesión de comprador no puede firmarse ni verificarse'
+    )
+  }
+  return secret
+}
+
+// true si el entorno puede emitir sesiones de comprador. /api/auth/login la
+// consulta para devolver un 500 explícito en vez de reventar dentro del try
+// después de haber validado ya la contraseña.
+export function isAuthSessionConfigured(): boolean {
+  return Boolean(process.env.AUTH_SESSION_SECRET)
 }
 
 function toBase64Url(buf: ArrayBuffer): string {
@@ -122,6 +139,9 @@ export async function verifyAuthToken(
       purchaseId: payload.purchase_id,
     }
   } catch {
+    // Cubre también el throw de getSecret(): sin AUTH_SESSION_SECRET ninguna
+    // sesión se da por válida (fail-closed), en lugar de aceptar tokens
+    // firmados con el secreto por defecto de antes.
     return { valid: false }
   }
 }

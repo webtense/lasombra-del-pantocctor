@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scryptSync, timingSafeEqual } from 'crypto'
 import { getServerSupabase } from '@/lib/supabase'
-import { createAuthToken, AUTH_SESSION_COOKIE } from '@/lib/auth-session'
+import { createAuthToken, AUTH_SESSION_COOKIE, isAuthSessionConfigured } from '@/lib/auth-session'
 import { SCRYPT_MAXMEM } from '@/lib/auth-password-helper'
 
 export const dynamic = 'force-dynamic'
@@ -48,6 +48,17 @@ async function verifyPassword(plaintext: string, hash: string): Promise<boolean>
 
 export async function POST(req: NextRequest) {
   try {
+    // Fail-closed y explícito: sin AUTH_SESSION_SECRET no se puede firmar la
+    // cookie de sesión. Se comprueba ANTES de tocar Supabase para no validar
+    // una contraseña que después no vamos a poder convertir en sesión.
+    if (!isAuthSessionConfigured()) {
+      console.error('[auth/login] falta AUTH_SESSION_SECRET')
+      return NextResponse.json(
+        { ok: false, error: 'Sesión no configurada en el servidor' },
+        { status: 500 }
+      )
+    }
+
     const { email, password } = await req.json()
 
     if (!email || typeof email !== 'string' || !password || typeof password !== 'string') {
