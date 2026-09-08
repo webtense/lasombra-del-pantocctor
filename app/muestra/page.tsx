@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 // congelado en el valor del último build (ISR).
 export const revalidate = 3600
 
-// Texto real extraído de DEFINITIVO/EDICION_FINAL/la-sombra-del-pantocrator-edicion-final.md
+// Texto real extraído de 01-MANUSCRITO/la-sombra-del-pantocrator-edicion-final.md
 // Capítulo 1 completo (501 palabras) · Capítulos 2 y 3 recortados a ~500 palabras cada uno.
 const sampleChapters = [
   {

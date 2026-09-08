@@ -44,39 +44,96 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const purchase = Array.isArray(purchaseRow) ? purchaseRow[0] : purchaseRow
   const purchaseId: number | undefined = purchase?.id
 
-  // Idempotencia: si Stripe reintenta el mismo evento, esto devuelve false
-  // la segunda vez y no se reenvía el email.
-  const { data: shouldSend, error: markError } = await sb.rpc('try_mark_purchase_email_sent', {
+  // ───────────────────────────────────────────────────────────────────────
+  // Entrega: reserva (claim) → credenciales → email → confirmar o revertir
+  //
+  // Antes se marcaba email_sent = true ANTES de llamar a Brevo. Si Brevo
+  // fallaba (hoy devuelve 401 por IP no autorizada) el flag ya estaba puesto,
+  // el reintento de Stripe salía por el return temprano y register_user_login
+  // (ON CONFLICT DO NOTHING) no regeneraba la contraseña: comprador con login
+  // creado, sin contraseña, sin email y sin recuperación posible.
+  //
+  // Estrategia elegida: claim + revert.
+  //   1) try_mark_purchase_email_sent() sigue siendo el compare-and-set, pero
+  //      ahora se lee como "reservo el envío", no como "ya lo he enviado". Es
+  //      atómico en Postgres (UPDATE ... WHERE email_sent = false), así que dos
+  //      entregas concurrentes del mismo evento de Stripe siguen sin poder
+  //      enviar dos emails: solo una se lleva la reserva.
+  //   2) Si Brevo confirma el envío, el flag se queda a true y ya no se vuelve
+  //      a enviar nunca.
+  //   3) Si Brevo falla, se revierte a false para que el siguiente reintento
+  //      de Stripe (o una reejecución manual del evento) vuelva a intentarlo.
+  //
+  // Riesgo residual asumido: si Brevo entregó el email pero la respuesta HTTP
+  // se perdió, se revierte y el reintento envía un email duplicado. Se prefiere
+  // un email duplicado a un comprador sin contraseña y sin vía de recuperación.
+  // ───────────────────────────────────────────────────────────────────────
+  const { data: claimed, error: claimError } = await sb.rpc('try_mark_purchase_email_sent', {
     p_stripe_session_id: session.id,
   })
-  if (markError) {
-    console.error('[webhook] try_mark_purchase_email_sent error', markError)
+  if (claimError) {
+    console.error('[webhook] try_mark_purchase_email_sent error', claimError)
     return
   }
-  if (!shouldSend) {
+  if (!claimed) {
     console.log('[webhook] email de compra ya enviado antes, se omite', session.id)
     return
   }
 
-  // Crear las credenciales de acceso a /panel. Va DESPUÉS del compare-and-set
-  // de arriba, así que un reintento de Stripe ni regenera la contraseña ni
-  // reenvía el email. register_user_login es además idempotente por email:
-  // si el comprador ya tenía login (recompra), devuelve false y NO pisa su
-  // contraseña — en ese caso el email no promete una contraseña nueva.
+  // A partir de aquí la reserva es nuestra: cualquier salida sin email enviado
+  // TIENE que revertirla, o el comprador se queda sin entrega.
+  const releaseClaim = async (motivo: string) => {
+    const { error } = await sb.rpc('reset_purchase_email_sent', {
+      p_stripe_session_id: session.id,
+    })
+    if (error) {
+      console.error(
+        '[webhook] 🔴 NO se pudo revertir email_sent tras fallo de envío —',
+        'el comprador queda sin email hasta intervención manual.',
+        session.id, motivo, error
+      )
+    } else {
+      console.warn('[webhook] email_sent revertido, el reintento de Stripe volverá a enviarlo', session.id, motivo)
+    }
+  }
+
+  // Credenciales de acceso a /panel. Va después de la reserva (así un
+  // reintento que no la consigue no toca nada), pero antes del email porque
+  // la contraseña viaja dentro.
+  //
+  // register_or_reset_user_login SÍ regenera la contraseña cuando la fila
+  // existente es de ESTA misma compra — que es justo el caso del reintento
+  // tras un envío fallido. Para un cliente recurrente (fila de otra compra
+  // anterior) devuelve false y NO pisa su contraseña.
   let panelPassword: string | null = null
   if (purchaseId) {
     const generated = generatePassword()
-    const { data: created, error: loginError } = await sb.rpc('register_user_login', {
+    const passwordHash = hashPassword(generated)
+    let { data: created, error: loginError } = await sb.rpc('register_or_reset_user_login', {
       p_email: email,
-      p_password_hash: hashPassword(generated),
+      p_password_hash: passwordHash,
       p_purchase_id: purchaseId,
     })
+
+    // Fallback mientras SQL_FIXES_PENDIENTE_EJECUTAR.sql no se haya ejecutado
+    // en Supabase: la función nueva todavía no existe (PostgREST PGRST202).
+    if (loginError && (loginError as { code?: string }).code === 'PGRST202') {
+      console.warn('[webhook] register_or_reset_user_login no existe todavía — usando register_user_login (ejecutar SQL_FIXES_PENDIENTE_EJECUTAR.sql)')
+      const legacy = await sb.rpc('register_user_login', {
+        p_email: email,
+        p_password_hash: passwordHash,
+        p_purchase_id: purchaseId,
+      })
+      created = legacy.data
+      loginError = legacy.error
+    }
+
     if (loginError) {
-      console.error('[webhook] register_user_login error', loginError)
+      console.error('[webhook] register_or_reset_user_login error', loginError)
     } else if (created) {
       panelPassword = generated
     } else {
-      console.log('[webhook] el comprador ya tenía login, se conserva su contraseña', email)
+      console.log('[webhook] el comprador ya tenía login de otra compra, se conserva su contraseña', email)
     }
   } else {
     console.error('[webhook] register_purchase no devolvió id — sin login para', session.id)
@@ -91,26 +148,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const base = process.env.NEXT_PUBLIC_URL || 'https://la-sombra-del-pantocrator.vercel.app'
   const dtoken = encodeURIComponent(token)
 
-  const result = await sendPurchaseEmail({
-    toEmail: email,
-    toName: session.customer_details?.name || null,
-    downloadLinks: {
-      epub: `${base}/api/download/epub?dtoken=${dtoken}`,
-      pdf: `${base}/api/download/pdf?dtoken=${dtoken}`,
-      mobi: `${base}/api/download/mobi?dtoken=${dtoken}`,
-      audio_m4b: `${base}/api/download/audio_m4b?dtoken=${dtoken}`,
-    },
-    expiresAt,
-    panelUrl: `${base}/login`,
-    panelEmail: email,
-    panelPassword,
-  })
+  let result: { sent: boolean; error?: string }
+  try {
+    result = await sendPurchaseEmail({
+      toEmail: email,
+      toName: session.customer_details?.name || null,
+      downloadLinks: {
+        epub: `${base}/api/download/epub?dtoken=${dtoken}`,
+        pdf: `${base}/api/download/pdf?dtoken=${dtoken}`,
+        mobi: `${base}/api/download/mobi?dtoken=${dtoken}`,
+        audio_m4b: `${base}/api/download/audio_m4b?dtoken=${dtoken}`,
+      },
+      expiresAt,
+      panelUrl: `${base}/login`,
+      panelEmail: email,
+      panelPassword,
+    })
+  } catch (err) {
+    result = { sent: false, error: err instanceof Error ? err.message : 'excepción desconocida' }
+  }
 
   if (!result.sent) {
-    console.warn('[webhook] email de compra no enviado', session.id, result.error)
-  } else {
-    console.log('✅ Email de compra enviado a', email, session.id)
+    console.warn('[webhook] email de compra NO enviado', session.id, result.error)
+    await releaseClaim(result.error || 'envío fallido')
+    return
   }
+
+  console.log('✅ Email de compra enviado a', email, session.id)
 }
 
 export async function POST(req: Request) {

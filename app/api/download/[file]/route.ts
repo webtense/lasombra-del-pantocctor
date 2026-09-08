@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
-import { createClient } from '@supabase/supabase-js'
 import { getServerSupabase } from '@/lib/supabase'
 import { verifyDownloadToken } from '@/lib/download-token'
 import { watermarkPdf, watermarkEpub } from '@/lib/watermark'
@@ -18,23 +17,33 @@ function ipHashOf(req: NextRequest) {
   return createHash('sha256').update(ip + 'lsp-purchase-salt-2026').digest('hex').slice(0, 16)
 }
 
+// Analítica fire-and-forget. NUNCA debe romper la descarga, pero tampoco
+// puede quedarse sin .catch(): antes producía una promesa rechazada no
+// capturada en CADA descarga (la tabla public.events no existía →
+// PGRST205). Ahora el fallo se registra en el log y se traga aquí mismo.
 function logEvent(req: NextRequest, eventType: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key) return
-  const sb = createClient(url, key)
+  const sb = getServerSupabase()
+  if (!sb) return
   const ua = req.headers.get('user-agent') || ''
   const deviceType = /mobile|android|iphone/i.test(ua) ? 'mobile' : /tablet|ipad/i.test(ua) ? 'tablet' : 'desktop'
   const country = req.headers.get('cf-ipcountry') || req.headers.get('x-vercel-ip-country') || null
-  sb.from('events').insert({
-    session_id: null,
-    ip_hash: ipHashOf(req),
-    event_type: eventType,
-    event_data: null,
-    device_type: deviceType,
-    country,
-    referrer: req.headers.get('referer') || null,
-  }).then(() => {})
+  Promise.resolve(
+    sb.from('events').insert({
+      session_id: null,
+      ip_hash: ipHashOf(req),
+      event_type: eventType,
+      event_data: null,
+      device_type: deviceType,
+      country,
+      referrer: req.headers.get('referer') || null,
+    })
+  )
+    .then(({ error }) => {
+      if (error) console.warn('[api/download] logEvent no registrado:', error.message)
+    })
+    .catch((err) => {
+      console.warn('[api/download] logEvent excepción:', err instanceof Error ? err.message : err)
+    })
 }
 
 const CONTENT_TYPES: Record<Format, string> = {
@@ -49,6 +58,39 @@ const FILENAMES: Record<Format, string> = {
   pdf: 'la-sombra-del-pantocrator.pdf',
   mobi: 'la-sombra-del-pantocrator.mobi',
   audio_m4b: 'la-sombra-del-pantocrator.m4b',
+}
+
+const DATA_FILES: Record<Exclude<Format, 'audio_m4b'>, string> = {
+  epub: 'libro.epub',
+  pdf: 'libro.pdf',
+  mobi: 'libro.mobi',
+}
+
+type Asset =
+  | { kind: 'file'; path: string }
+  | { kind: 'redirect'; url: string }
+
+/**
+ * Localiza el fichero (o la URL firmada) del formato pedido SIN registrar nada.
+ *
+ * Se llama ANTES de register_purchase_download: si el asset no existe —el caso
+ * real del MOBI, que devolvía 503 pero ya había consumido una de las 5
+ * descargas— el comprador recibe el error sin gastar cuota.
+ */
+function locateAsset(format: Format, quality: 'normal' | 'premium'): Asset | null {
+  if (format === 'audio_m4b') {
+    // Fichero grande: no se guarda en _data, se sirve por redirect a una URL
+    // firmada de corta duración en el VPS (nginx secure_link), con fallback a
+    // DRIVE_AUDIO_URL si el secreto del VPS no está configurado en Vercel.
+    const signedUrl = getSignedAudiobookUrl(quality)
+    if (signedUrl) return { kind: 'redirect', url: signedUrl }
+    const driveUrl = process.env.DRIVE_AUDIO_URL
+    if (driveUrl) return { kind: 'redirect', url: driveUrl }
+    return null
+  }
+
+  const path = join(process.cwd(), 'app/api/download/_data', DATA_FILES[format])
+  return existsSync(path) ? { kind: 'file', path } : null
 }
 
 export async function GET(
@@ -80,6 +122,22 @@ export async function GET(
     return NextResponse.json({ error: 'format_not_purchased' }, { status: 403 })
   }
 
+  // FIX: comprobar la disponibilidad del fichero ANTES de contabilizar la
+  // descarga. Antes se registraba primero y luego se devolvía 503 para el
+  // MOBI (que no está generado): quien probaba ese enlace perdía una descarga
+  // y no recibía nada.
+  const quality = req.nextUrl.searchParams.get('quality') === 'premium' ? 'premium' : 'normal'
+  const asset = locateAsset(format, quality)
+  if (!asset) {
+    const detail = format === 'mobi'
+      ? 'MOBI aún no generado (ver scripts/convert-ebooks.sh)'
+      : format === 'audio_m4b'
+        ? 'Audiolibro no disponible aún'
+        : `Fichero ${format} no disponible`
+    console.error('[api/download] asset no disponible, no se contabiliza descarga:', format)
+    return NextResponse.json({ error: detail, counted: false }, { status: 503 })
+  }
+
   const sb = getServerSupabase()
   if (!sb) {
     return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 })
@@ -107,9 +165,12 @@ export async function GET(
   logEvent(req, `download_${format}`)
 
   try {
+    if (asset.kind === 'redirect') {
+      return NextResponse.redirect(asset.url, { status: 302 })
+    }
+
     if (format === 'epub') {
-      const epubPath = join(process.cwd(), 'app/api/download/_data/libro.epub')
-      const raw = readFileSync(epubPath)
+      const raw = readFileSync(asset.path)
       const watermarked = await watermarkEpub(raw, { email: verified.email, sessionId: verified.sessionId })
       return new NextResponse(Buffer.from(watermarked), {
         headers: {
@@ -121,8 +182,7 @@ export async function GET(
     }
 
     if (format === 'pdf') {
-      const pdfPath = join(process.cwd(), 'app/api/download/_data/libro.pdf')
-      const raw = readFileSync(pdfPath)
+      const raw = readFileSync(asset.path)
       const watermarked = await watermarkPdf(new Uint8Array(raw), { email: verified.email, sessionId: verified.sessionId })
       return new NextResponse(Buffer.from(watermarked), {
         headers: {
@@ -133,36 +193,15 @@ export async function GET(
       })
     }
 
-    if (format === 'mobi') {
-      const mobiPath = join(process.cwd(), 'app/api/download/_data/libro.mobi')
-      if (!existsSync(mobiPath)) {
-        return NextResponse.json({ error: 'MOBI aún no generado (ver scripts/convert-ebooks.sh)' }, { status: 503 })
-      }
-      const data = readFileSync(mobiPath)
-      return new NextResponse(data, {
-        headers: {
-          'Content-Type': CONTENT_TYPES.mobi,
-          'Content-Disposition': `attachment; filename="${FILENAMES.mobi}"`,
-          'Cache-Control': 'no-store',
-        },
-      })
-    }
-
-    // audio_m4b: fichero grande, no se guarda en _data — se sirve vía
-    // redirect a una URL firmada de corta duración en el VPS (nginx
-    // secure_link). Fallback a DRIVE_AUDIO_URL si el secreto del VPS
-    // no está aún configurado en Vercel.
-    const quality = req.nextUrl.searchParams.get('quality') === 'premium' ? 'premium' : 'normal'
-    const signedUrl = getSignedAudiobookUrl(quality)
-    if (signedUrl) {
-      return NextResponse.redirect(signedUrl, { status: 302 })
-    }
-
-    const driveUrl = process.env.DRIVE_AUDIO_URL
-    if (!driveUrl) {
-      return NextResponse.json({ error: 'Audiolibro no disponible aún' }, { status: 503 })
-    }
-    return NextResponse.redirect(driveUrl, { status: 302 })
+    // mobi: se sirve tal cual, sin marca de agua.
+    const data = readFileSync(asset.path)
+    return new NextResponse(data, {
+      headers: {
+        'Content-Type': CONTENT_TYPES[format],
+        'Content-Disposition': `attachment; filename="${FILENAMES[format]}"`,
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (err) {
     console.error('[api/download] error sirviendo fichero', format, err)
     return NextResponse.json({ error: 'Archivo no disponible' }, { status: 404 })

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
+import { getServerSupabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key) return null
-  return createClient(url, key)
-}
+// getServerSupabase() (y no createClient() a pelo) porque es el único cliente
+// que fuerza cache:'no-store' en el fetch — si no, el Data Cache de Next.js
+// deduplica los INSERT con el mismo body y se pierden eventos.
 
 function hashIP(ip: string): string {
   return createHash('sha256').update(ip + 'lsp-salt-2024').digest('hex').slice(0, 16)
@@ -66,7 +63,7 @@ export async function POST(req: NextRequest) {
     const deviceType = detectDevice(user_agent || req.headers.get('user-agent') || '')
     const country = req.headers.get('cf-ipcountry') || req.headers.get('x-vercel-ip-country') || null
 
-    const supabase = getSupabase()
+    const supabase = getServerSupabase()
     if (!supabase) return NextResponse.json({ ok: true, skipped: true })
 
     const { error } = await supabase.from('events').insert({

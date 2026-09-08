@@ -165,8 +165,15 @@ const CHAPTERS = [
   { idx: 129, file: '129_cap_131.mp3', title: 'Capítulo 131', isMarker: false },
 ]
 
-const PROGRESS_KEY = 'lsp_progress'
+export type AudioQuality = 'normal' | 'premium'
+
 const SPEEDS = [0.75, 1, 1.25, 1.5, 2]
+
+// El progreso se guarda por calidad: revisar el premium desde /admin/audiolibro
+// no debe pisar el punto de escucha del comprador en /panel (calidad normal).
+function progressKey(quality: AudioQuality): string {
+  return quality === 'premium' ? 'lsp_progress_premium' : 'lsp_progress'
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -198,18 +205,30 @@ function prevPlayableIdx(fromIdx: number): number {
   return prev >= 0 ? prev : -1
 }
 
-function audioUrl(file: string): string {
+function audioUrl(file: string, quality: AudioQuality): string {
   const base = process.env.NEXT_PUBLIC_AUDIO_BASE_URL ?? ''
-  // El streaming por capitulo del reproductor web usa siempre la calidad
-  // "normal" (edge-tts) por ligereza; el M4B "premium" es solo para descarga.
-  // El VPS reorganizo los MP3 en /normal/ y /premium/ (ver PASO 4/6, sep 2026).
-  return `${base.replace(/\/$/, '')}/normal/${file}`
+  // El VPS sirve los 130 MP3 por capitulo en /normal/ (edge-tts) y en
+  // /premium/ (Google es-ES-Studio-F). Solo los *.m4b estan detrás de
+  // secure_link en nginx; los MP3 por capitulo se sirven sin firmar, por eso
+  // aqui basta con construir la ruta (ver lib/vps-audio-link.ts para el M4B).
+  return `${base.replace(/\/$/, '')}/${quality}/${file}`
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-export default function AudiobookPlayer() {
+export interface AudiobookPlayerProps {
+  /** Carpeta del VPS de la que se hace streaming. Por defecto 'normal'. */
+  quality?: AudioQuality
+  /** Envia eventos a /api/event. Se desactiva en la pantalla de QA del admin. */
+  tracking?: boolean
+}
+
+export default function AudiobookPlayer({
+  quality = 'normal',
+  tracking = true,
+}: AudiobookPlayerProps = {}) {
+  const PROGRESS_KEY = progressKey(quality)
   const audioRef = useRef<HTMLAudioElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const activeItemRef = useRef<HTMLButtonElement>(null)
@@ -249,7 +268,7 @@ export default function AudiobookPlayer() {
     } catch {
       // ignore
     }
-  }, [])
+  }, [PROGRESS_KEY])
 
   // ---------------------------------------------------------------------------
   // Save progress every 5 seconds
@@ -266,7 +285,7 @@ export default function AudiobookPlayer() {
     return () => {
       if (saveTimerRef.current) clearInterval(saveTimerRef.current)
     }
-  }, [currentIdx])
+  }, [currentIdx, PROGRESS_KEY])
 
   // ---------------------------------------------------------------------------
   // Load chapter into audio element
@@ -276,14 +295,14 @@ export default function AudiobookPlayer() {
       const audio = audioRef.current
       if (!audio) return
       const ch = CHAPTERS[idx]
-      if (autoplay && !ch.isMarker) {
-        trackEvent('chapter_start', { chapter_idx: ch.idx, chapter_title: ch.title })
+      if (tracking && autoplay && !ch.isMarker) {
+        trackEvent('chapter_start', { chapter_idx: ch.idx, chapter_title: ch.title, quality })
       }
       setCurrentIdx(idx)
       setCurrentTime(0)
       setDuration(0)
       setIsLoading(true)
-      audio.src = audioUrl(ch.file)
+      audio.src = audioUrl(ch.file, quality)
       audio.load()
       if (seekTo > 0) {
         const onCanPlay = () => {
@@ -300,7 +319,7 @@ export default function AudiobookPlayer() {
         audio.addEventListener('canplay', onCanPlay)
       }
     },
-    []
+    [quality, tracking]
   )
 
   // ---------------------------------------------------------------------------
@@ -347,10 +366,10 @@ export default function AudiobookPlayer() {
 
   function handlePlay() {
     setIsPlaying(true)
-    if (!playStartSentRef.current) {
+    if (tracking && !playStartSentRef.current) {
       playStartSentRef.current = true
       const ch = CHAPTERS[currentIdx]
-      trackEvent('play_start', { chapter_idx: ch.idx, chapter_title: ch.title })
+      trackEvent('play_start', { chapter_idx: ch.idx, chapter_title: ch.title, quality })
     }
   }
 
@@ -360,8 +379,8 @@ export default function AudiobookPlayer() {
 
   function handleEnded() {
     const ch = CHAPTERS[currentIdx]
-    if (!ch.isMarker) {
-      trackEvent('chapter_complete', { chapter_idx: ch.idx, chapter_title: ch.title })
+    if (tracking && !ch.isMarker) {
+      trackEvent('chapter_complete', { chapter_idx: ch.idx, chapter_title: ch.title, quality })
     }
     const next = nextPlayableIdx(currentIdx)
     if (next !== -1) {
@@ -506,6 +525,11 @@ export default function AudiobookPlayer() {
           <p className="text-xs text-gray-500 uppercase tracking-widest">La Sombra del Pantocrator</p>
           <p className="text-sm text-white truncate">{currentChapter.title}</p>
         </div>
+        {quality === 'premium' && (
+          <span className="flex-shrink-0 text-[10px] uppercase tracking-widest font-semibold rounded-full px-2.5 py-1 bg-[#C9A84C]/15 text-[#C9A84C] border border-[#C9A84C]/40">
+            Premium
+          </span>
+        )}
         {/* Mobile: chapters toggle */}
         <button
           className="md:hidden text-gray-400 hover:text-[#C9A84C] transition-colors text-sm border border-[#C9A84C]/30 rounded-lg px-3 py-1"

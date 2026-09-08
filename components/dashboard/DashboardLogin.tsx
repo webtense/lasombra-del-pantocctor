@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 // pone una cookie httpOnly firmada; aquí solo pedimos a Next que vuelva a
 // renderizar la página del servidor (router.refresh) para que
 // app/admin/dashboard/page.tsx relea esa cookie y muestre el dashboard.
-export default function DashboardLogin() {
+export default function DashboardLogin({ title = 'Dashboard KPIs' }: { title?: string } = {}) {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -47,7 +47,7 @@ export default function DashboardLogin() {
               <path d="M18 17V9M13 17V5M8 17v-3" />
             </svg>
           </div>
-          <h1 className="font-serif text-2xl text-white mb-1">Dashboard KPIs</h1>
+          <h1 className="font-serif text-2xl text-white mb-1">{title}</h1>
           <p className="text-gray-500 text-sm">La Sombra del Pantocrátor</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

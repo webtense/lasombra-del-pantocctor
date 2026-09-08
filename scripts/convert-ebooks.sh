@@ -12,7 +12,7 @@
 #     Web:           https://calibre-ebook.com/download
 #
 # Uso:
-#   cd LSP_Claude_v3/WEB
+#   cd 02-WEB
 #   ./scripts/convert-ebooks.sh
 
 set -euo pipefail

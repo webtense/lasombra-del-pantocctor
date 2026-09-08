@@ -5,7 +5,7 @@
 VPS_USER="asanchez"
 VPS_HOST="217.154.188.166"
 VPS_DIR="/var/www/lsp-audiobook"
-LOCAL_DIR="$(dirname "$0")/../../../../../DEFINITIVO/PAQUETE_FINAL_PUB/AUDIOBOOK/chapters_mastered/"
+LOCAL_DIR="$(dirname "$0")/../../04-AUDIO/distribucion/paquete-final-mp3/chapters_mastered/"
 
 echo "Subiendo audiolibro a $VPS_HOST:$VPS_DIR ..."
 echo ""

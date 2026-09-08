@@ -116,6 +116,10 @@ export async function sendPurchaseEmail(
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
+      // cache:'no-store' obligatorio: Next.js cachea también las POST salientes
+      // y un reintento con el mismo body devolvería la respuesta guardada sin
+      // llegar a enviar el email.
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -139,6 +143,74 @@ export async function sendPurchaseEmail(
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'error desconocido'
     console.error('[brevo] excepción enviando email de compra', msg)
+    return { sent: false, error: msg }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email de recuperación de contraseña (POST /api/auth/reset-password).
+//
+// No es un "enlace mágico": el endpoint genera una contraseña nueva, la
+// guarda hasheada y la manda aquí en claro por email — mismo modelo que el
+// email post-compra, que es la única contraseña que el comprador ha visto.
+// ─────────────────────────────────────────────────────────────────────────────
+export async function sendPasswordResetEmail(
+  { toEmail, newPassword, panelUrl }: { toEmail: string; newPassword: string; panelUrl: string }
+): Promise<{ sent: boolean; error?: string }> {
+  const apiKey = process.env.BREVO_API_KEY
+
+  if (!apiKey) {
+    // Nunca volcar la contraseña en claro al log del servidor.
+    console.error('[brevo] BREVO_API_KEY no configurada — no se puede enviar el reset a', toEmail)
+    return { sent: false, error: 'BREVO_API_KEY no configurada' }
+  }
+
+  const html = `
+    <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; color: #111;">
+      <h2 style="color:#8B6914;">La Sombra del Pantocrátor</h2>
+      <p>Has pedido una contraseña nueva para tu panel de lectura y escucha.</p>
+      <div style="margin:24px 0; padding:16px; background:#faf7ef; border:1px solid #E0C97A; border-radius:8px;">
+        <p style="margin:6px 0; font-size:14px;">Usuario: <strong>${escapeHtml(toEmail)}</strong></p>
+        <p style="margin:6px 0; font-size:14px;">Contraseña nueva:
+          <strong style="font-family: monospace; letter-spacing:1px; background:#fff; padding:2px 6px; border:1px solid #ddd; border-radius:4px;">${escapeHtml(newPassword)}</strong>
+        </p>
+        <p style="margin:10px 0 0; font-size:12px; color:#666;">La anterior ya no funciona. Guarda esta: por seguridad no la almacenamos en claro y no podemos volver a mostrártela.</p>
+        <p style="margin:14px 0 0;">
+          <a href="${panelUrl}" style="color:#8B6914; font-weight:bold;">Entrar en mi panel →</a>
+        </p>
+      </div>
+      <p style="font-size: 13px; color:#666;">Si no has sido tú, ignora este correo: nadie ha podido acceder a tu cuenta con la contraseña anterior.</p>
+      <p>Un saludo,<br/>Andrés</p>
+    </div>
+  `
+
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'api-key': apiKey,
+      },
+      body: JSON.stringify({
+        sender: { name: SENDER_NAME, email: SENDER_EMAIL },
+        to: [{ email: toEmail }],
+        subject: 'Tu contraseña nueva — La Sombra del Pantocrátor',
+        htmlContent: html,
+      }),
+    })
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      console.error('[brevo] error enviando reset de contraseña', res.status, body)
+      return { sent: false, error: `Brevo ${res.status}` }
+    }
+
+    return { sent: true }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'error desconocido'
+    console.error('[brevo] excepción enviando reset de contraseña', msg)
     return { sent: false, error: msg }
   }
 }
