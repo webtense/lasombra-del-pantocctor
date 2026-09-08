@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { StatCard, Card, IntegrationStatus, STATE_LABELS, STATE_COLORS } from './ui'
+import EmailCard from './EmailCard'
 import type { MarketingCampaign, InstagramManualPost } from '@/lib/supabase'
 
 const eur = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0)
@@ -463,40 +464,6 @@ function InstagramCard() {
 // ─────────────────────────────────────────────
 // Email (Brevo)
 // ─────────────────────────────────────────────
-function EmailCard() {
-  const [data, setData] = useState<{
-    configured: boolean
-    subscribers?: number
-    lastCampaign?: { name: string; delivered: number; uniqueOpens: number; openRate: number | null } | null
-    docsUrl?: string
-    message?: string
-  } | null>(null)
-
-  useEffect(() => {
-    fetch('/api/admin/dashboard/email').then((r) => r.json()).then(setData)
-  }, [])
-
-  return (
-    <IntegrationStatus name="Email (Brevo)" configured={!!data?.configured} docsUrl={data?.docsUrl} message={data?.message}>
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <p className="text-gray-600 uppercase tracking-wider mb-1">Suscriptores</p>
-          <p className="text-[#C9A84C] text-lg font-semibold">{data?.subscribers ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-gray-600 uppercase tracking-wider mb-1">Tasa de apertura</p>
-          <p className="text-[#C9A84C] text-lg font-semibold">
-            {data?.lastCampaign?.openRate != null ? `${(data.lastCampaign.openRate * 100).toFixed(1)}%` : 'Sin datos'}
-          </p>
-        </div>
-      </div>
-      {data?.lastCampaign && (
-        <p className="text-gray-600 text-xs mt-3">Última campaña: {data.lastCampaign.name}</p>
-      )}
-    </IntegrationStatus>
-  )
-}
-
 export default function MarketingTab() {
   return (
     <div className="space-y-8">

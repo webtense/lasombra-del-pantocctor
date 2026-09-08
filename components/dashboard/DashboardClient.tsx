@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation'
 import SummaryTab from './SummaryTab'
 import AnalyticsTab from './AnalyticsTab'
 import MarketingTab from './MarketingTab'
+import MailingTab from './MailingTab'
 import IntegrationsTab from './IntegrationsTab'
 import AuditTab from './AuditTab'
 
-type Tab = 'resumen' | 'analitica' | 'marketing' | 'integraciones' | 'auditoria'
+type Tab = 'resumen' | 'analitica' | 'marketing' | 'mailing' | 'integraciones' | 'auditoria'
 
 export default function DashboardClient() {
   const router = useRouter()
@@ -43,6 +44,7 @@ export default function DashboardClient() {
             ['resumen', 'Resumen de negocio'],
             ['analitica', 'Analítica'],
             ['marketing', 'Marketing'],
+            ['mailing', 'Mailing'],
             ['integraciones', 'Integraciones'],
             ['auditoria', 'Auditoría'],
           ] as [Tab, string][]).map(([t, label]) => (
@@ -61,6 +63,7 @@ export default function DashboardClient() {
         {tab === 'resumen' && <SummaryTab />}
         {tab === 'analitica' && <AnalyticsTab />}
         {tab === 'marketing' && <MarketingTab />}
+        {tab === 'mailing' && <MailingTab />}
         {tab === 'integraciones' && <IntegrationsTab />}
         {tab === 'auditoria' && <AuditTab />}
       </div>
