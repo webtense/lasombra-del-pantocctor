@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase'
 import { sendTesterLinkEmail } from '@/lib/send-tester-email'
+import { hasValidAdminSession } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,8 +10,16 @@ const DEFAULT_TTL_HOURS = 48
 // Genera un token de descarga para un tester y (si hay BREVO_API_KEY) le
 // envía el email con el link. Siempre devuelve la URL para que el admin
 // pueda copiarla/enviarla a mano si el email falla o no está configurado.
+//
+// Exige sesión de admin ANTES de tocar nada: sin esta comprobación, cualquiera
+// podía crear testers, emitir tokens de descarga válidos y disparar envíos de
+// email desde nuestra cuenta de Brevo.
 export async function POST(req: NextRequest) {
   try {
+    if (!(await hasValidAdminSession(req))) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+
     const { testerId, email, name, hours, sendEmail } = await req.json()
 
     const sb = getServerSupabase()

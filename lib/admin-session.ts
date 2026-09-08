@@ -14,14 +14,27 @@
 export const SESSION_COOKIE = 'lsp_dashboard_session'
 const SESSION_TTL_HOURS = 12
 
+// Fail-closed: ADMIN_SESSION_SECRET es OBLIGATORIO. Antes caía en cascada a
+// ADMIN_PASSWORD y, en última instancia, a un literal en el repo — cualquiera
+// con acceso al código podía firmar cookies de sesión válidas. Ahora, si la
+// variable no está puesta, se lanza: mejor que el despliegue falle de forma
+// visible a que funcione en silencio con un secreto conocido.
 function getSecret(): string {
-  // ADMIN_SESSION_SECRET es opcional; si no existe, se deriva de
-  // ADMIN_PASSWORD (ya es secreto de servidor) para no requerir una
-  // variable de entorno nueva en despliegues existentes.
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    'lsp-dashboard-dev-secret-cambiar-en-produccion'
+  const secret = process.env.ADMIN_SESSION_SECRET
+  if (!secret) {
+    throw new Error(
+      'ADMIN_SESSION_SECRET no está configurado: la sesión de admin no puede firmarse ni verificarse'
+    )
+  }
+  return secret
+}
+
+// true si el entorno tiene todo lo necesario para autenticar a un admin.
+// Las rutas de login la consultan para devolver un 500 explícito en vez de
+// un 401 genérico (que haría pensar en credenciales mal tecleadas).
+export function isAdminAuthConfigured(): boolean {
+  return Boolean(
+    process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD && process.env.ADMIN_SESSION_SECRET
   )
 }
 
@@ -63,6 +76,18 @@ export async function createSessionToken(username: string): Promise<{ token: str
   const sigBuf = await crypto.subtle.sign('HMAC', key, payloadBytes)
   const token = `${toBase64Url(payloadBytes.buffer as ArrayBuffer)}.${toBase64Url(sigBuf)}`
   return { token, maxAgeSeconds }
+}
+
+// Comprueba la cookie de sesión de admin en el propio handler/página.
+// Tipado por estructura (no importa next/server) para poder usarse igual con
+// el NextRequest de una Route Handler, con cookies() de next/headers en un
+// Server Component y con el NextRequest del middleware (runtime Edge).
+export async function hasValidAdminSession(source: {
+  cookies: { get(name: string): { value: string } | undefined }
+}): Promise<boolean> {
+  const token = source.cookies.get(SESSION_COOKIE)?.value
+  const { valid } = await verifySessionToken(token)
+  return valid
 }
 
 export async function verifySessionToken(

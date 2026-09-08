@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/admin-session'
 
-// Protege /admin/dashboard y su API. La verificación ocurre en el servidor
-// (Edge middleware) antes de que la petición llegue a la página o a la
-// Route Handler — un cliente no puede saltarse esto manipulando JS/DOM,
-// a diferencia del panel /admin legacy (sessionStorage).
+// Protege todo /admin y las APIs de admin. La verificación ocurre en el
+// servidor (Edge middleware) antes de que la petición llegue a la página o a
+// la Route Handler — un cliente no puede saltarse esto manipulando JS/DOM,
+// a diferencia del panel /admin anterior (flag en sessionStorage).
 export async function middleware(req: NextRequest) {
-  const isApi = req.nextUrl.pathname.startsWith('/api/admin/dashboard')
-  // El propio endpoint de login/logout no requiere sesión previa
-  if (req.nextUrl.pathname === '/api/admin/dashboard/auth') {
+  const isApi = req.nextUrl.pathname.startsWith('/api/')
+  // Los endpoints de login/logout no requieren sesión previa
+  if (
+    req.nextUrl.pathname === '/api/admin/dashboard/auth' ||
+    req.nextUrl.pathname === '/api/admin/auth'
+  ) {
     return NextResponse.next()
   }
 
@@ -22,12 +25,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
 
-  // La página /admin/dashboard es un Server Component que, sin cookie
-  // válida, renderiza el formulario de login (ver app/admin/dashboard/page.tsx).
-  // No hace falta redirigir: dejamos pasar y es la propia página quien decide.
+  // Las páginas bajo /admin son Server Components que, sin cookie válida,
+  // renderizan el formulario de login. No hace falta redirigir: dejamos pasar
+  // y es la propia página quien decide qué servir.
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/dashboard/:path*', '/api/admin/dashboard/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/admin/dashboard/:path*',
+    '/api/admin/testers/:path*',
+  ],
 }

@@ -1,17 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSessionToken, SESSION_COOKIE } from '@/lib/admin-session'
+import { createSessionToken, SESSION_COOKIE, isAdminAuthConfigured } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 
-// Mismas credenciales que el panel /admin legacy (ADMIN_USERNAME/ADMIN_PASSWORD)
-// pero aquí, si son correctas, se emite una cookie httpOnly firmada en vez de
-// solo devolver { ok: true } para que el cliente la guarde en sessionStorage.
+// Único punto de login de admin: valida ADMIN_USERNAME/ADMIN_PASSWORD y, si
+// son correctos, emite una cookie httpOnly firmada (HMAC-SHA256).
+//
+// Fail-closed: sin las variables de entorno NO se autentica a nadie. Antes
+// había credenciales por defecto en el código ('asanchez' / la contraseña en
+// claro), de modo que un despliegue sin configurar quedaba abierto a
+// cualquiera que hubiese leído el repositorio.
 export async function POST(req: NextRequest) {
   try {
+    if (!isAdminAuthConfigured()) {
+      console.error(
+        '[api/admin/dashboard/auth] faltan ADMIN_USERNAME / ADMIN_PASSWORD / ADMIN_SESSION_SECRET'
+      )
+      return NextResponse.json(
+        { ok: false, error: 'Autenticación de admin no configurada en el servidor' },
+        { status: 500 }
+      )
+    }
+
     const { username, password } = await req.json()
 
-    const correctUser = process.env.ADMIN_USERNAME || 'asanchez'
-    const correctPass = process.env.ADMIN_PASSWORD || '3802Mario!'
+    const correctUser = process.env.ADMIN_USERNAME
+    const correctPass = process.env.ADMIN_PASSWORD
 
     if (username !== correctUser || password !== correctPass) {
       return NextResponse.json({ ok: false, error: 'Credenciales incorrectas' }, { status: 401 })
