@@ -30,6 +30,7 @@ type CountsResponse = {
   listsError?: string | null
   plan?: { type: string; credits: number | null; creditsType: string | null } | null
   dailySendLimit: number
+  creditsRemaining?: number | null
 }
 
 type Draft = {
@@ -39,6 +40,7 @@ type Draft = {
   listId: number
   recipientCount: number | null
   dailySendLimit: number
+  creditsRemaining: number | null
   exceedsDailyLimit: boolean
 }
 
@@ -468,20 +470,24 @@ function CampaignSection({
                 <p className="text-[#C9A84C] font-semibold">{draft.recipientCount ?? '—'}</p>
               </div>
               <div>
-                <p className="text-gray-600 uppercase tracking-wider text-[10px]">Tope diario</p>
-                <p className="text-gray-300">{draft.dailySendLimit}</p>
+                <p className="text-gray-600 uppercase tracking-wider text-[10px]">Envíos hoy</p>
+                <p className="text-gray-300">
+                  {draft.creditsRemaining ?? '—'} <span className="text-gray-600">/ {draft.dailySendLimit}</span>
+                </p>
               </div>
             </div>
 
             {draft.exceedsDailyLimit ? (
               <Notice kind="warn">
-                La lista tiene {draft.recipientCount} destinatarios y el plan Free de Brevo solo permite{' '}
-                {draft.dailySendLimit} envíos al día. Brevo cortará el envío al llegar al tope: reparte la lista en
-                varios días o sube de plan antes de enviar.
+                La lista tiene {draft.recipientCount} destinatarios y hoy solo quedan{' '}
+                {draft.creditsRemaining ?? draft.dailySendLimit} envíos disponibles (plan Free de Brevo:{' '}
+                {draft.dailySendLimit} al día, y el contador ya baja con lo enviado hoy). Brevo cortará el envío al
+                llegar al tope: reparte la lista en varios días o sube de plan antes de enviar.
               </Notice>
             ) : (
               <p className="text-gray-600 text-[11px]">
-                Dentro del tope del plan Free ({draft.dailySendLimit} envíos/día).
+                Cabe en los {draft.creditsRemaining ?? draft.dailySendLimit} envíos que quedan hoy
+                (plan Free: {draft.dailySendLimit}/día).
               </p>
             )}
 
@@ -536,9 +542,9 @@ export default function MailingTab() {
           loading={loading}
         />
         <StatCard
-          label="Tope de envío diario"
-          value={counts?.dailySendLimit ?? '—'}
-          sub={counts?.plan ? `Plan ${counts.plan.type}` : 'Plan Free de Brevo'}
+          label="Envíos disponibles hoy"
+          value={counts?.creditsRemaining ?? '—'}
+          sub={`de ${counts?.dailySendLimit ?? 300}/día · plan ${counts?.plan?.type ?? 'free'} de Brevo`}
           loading={loading}
         />
         <StatCard

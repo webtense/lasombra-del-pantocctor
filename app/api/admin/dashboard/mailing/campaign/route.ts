@@ -3,6 +3,7 @@ import { hasValidAdminSession } from '@/lib/admin-session'
 import {
   BREVO_DAILY_SEND_LIMIT,
   createCampaign,
+  getAccountPlan,
   getListRecipientCount,
   isBrevoConfigured,
   plainTextToHtml,
@@ -69,7 +70,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: created.error }, { status: 502 })
   }
 
-  const recipientCount = await getListRecipientCount(listId)
+  const [recipientCount, planRes] = await Promise.all([getListRecipientCount(listId), getAccountPlan()])
+
+  // Lo que de verdad corta el envío no es el tope de 300, sino los envíos que
+  // QUEDEN hoy (plan.credits en el plan Free va bajando con cada correo). Se
+  // avisa contra esa cifra, y solo si Brevo no la da se recurre al tope.
+  const creditsRemaining =
+    planRes.ok && planRes.data.creditsType === 'sendLimit' ? planRes.data.credits : null
+  const effectiveCap = creditsRemaining ?? BREVO_DAILY_SEND_LIMIT
 
   return NextResponse.json({
     ok: true,
@@ -79,6 +87,7 @@ export async function POST(req: NextRequest) {
     listId,
     recipientCount,
     dailySendLimit: BREVO_DAILY_SEND_LIMIT,
-    exceedsDailyLimit: recipientCount != null && recipientCount > BREVO_DAILY_SEND_LIMIT,
+    creditsRemaining,
+    exceedsDailyLimit: recipientCount != null && recipientCount > effectiveCap,
   })
 }

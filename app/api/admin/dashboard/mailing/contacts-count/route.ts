@@ -35,12 +35,12 @@ export async function GET(req: NextRequest) {
 
   const [listsRes, planRes] = await Promise.all([listLists(), getAccountPlan()])
 
-  // El plan free trae credits=300 / creditsType=sendLimit. Si Brevo no
-  // contesta, se cae al valor conocido en vez de dejar la UI sin aviso.
-  const dailySendLimit =
-    planRes.ok && planRes.data.creditsType === 'sendLimit' && planRes.data.credits
-      ? planRes.data.credits
-      : BREVO_DAILY_SEND_LIMIT
+  // OJO: en el plan Free, plan.credits con creditsType='sendLimit' es lo que
+  // QUEDA por enviar hoy, no el tope. Se comprobó en vivo: tras enviar 3
+  // correos de prueba pasó de 300 a 297. Son dos cifras distintas y la UI
+  // necesita las dos — confundirlas hacía que el "tope diario" bajase solo.
+  const creditsRemaining =
+    planRes.ok && planRes.data.creditsType === 'sendLimit' ? planRes.data.credits : null
 
   return NextResponse.json({
     brevoConfigured: true,
@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
     lists: listsRes.ok ? listsRes.data : [],
     listsError: listsRes.ok ? null : listsRes.error,
     plan: planRes.ok ? planRes.data : null,
-    dailySendLimit,
+    dailySendLimit: BREVO_DAILY_SEND_LIMIT,
+    creditsRemaining,
   })
 }
