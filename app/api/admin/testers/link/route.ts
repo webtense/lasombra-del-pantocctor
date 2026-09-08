@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase'
 import { sendTesterLinkEmail } from '@/lib/send-tester-email'
-import { hasValidAdminSession } from '@/lib/admin-session'
+import { hasValidAdminSession, verifySessionToken, SESSION_COOKIE } from '@/lib/admin-session'
+import { logAdminAction } from '@/lib/admin-audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,17 @@ export async function POST(req: NextRequest) {
       tId = (tester as { id: number }).id
       testerEmail = (tester as { email: string }).email
       testerName = (tester as { name: string | null }).name
+
+      // Auditoría (fire-and-forget, no puede romper la emisión del link):
+      // el alta de un tester da acceso a la obra completa, así que queda
+      // registrado quién lo creó y para qué email.
+      const { username } = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value)
+      logAdminAction('tester_created', {
+        actor: username || 'admin',
+        target: testerEmail,
+        details: { testerId: tId, via: 'testers/link' },
+        req,
+      })
     } else {
       const { data: tester } = await sb.from('testers').select('email,name').eq('id', tId).single()
       if (tester) {

@@ -4,10 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import SummaryTab from './SummaryTab'
+import AnalyticsTab from './AnalyticsTab'
 import MarketingTab from './MarketingTab'
 import IntegrationsTab from './IntegrationsTab'
+import AuditTab from './AuditTab'
 
-type Tab = 'resumen' | 'marketing' | 'integraciones'
+type Tab = 'resumen' | 'analitica' | 'marketing' | 'integraciones' | 'auditoria'
 
 export default function DashboardClient() {
   const router = useRouter()
@@ -39,8 +41,10 @@ export default function DashboardClient() {
         <div className="flex gap-1 mb-8 border-b border-gray-800 overflow-x-auto">
           {([
             ['resumen', 'Resumen de negocio'],
+            ['analitica', 'Analítica'],
             ['marketing', 'Marketing'],
             ['integraciones', 'Integraciones'],
+            ['auditoria', 'Auditoría'],
           ] as [Tab, string][]).map(([t, label]) => (
             <button
               key={t}
@@ -55,8 +59,10 @@ export default function DashboardClient() {
         </div>
 
         {tab === 'resumen' && <SummaryTab />}
+        {tab === 'analitica' && <AnalyticsTab />}
         {tab === 'marketing' && <MarketingTab />}
         {tab === 'integraciones' && <IntegrationsTab />}
+        {tab === 'auditoria' && <AuditTab />}
       </div>
     </div>
   )
