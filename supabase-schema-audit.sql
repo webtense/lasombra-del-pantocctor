@@ -253,14 +253,25 @@ BEGIN
     p.email_sent,
     (ul.id IS NOT NULL)         AS has_login,
     ul.created_at               AS login_created_at,
-    COALESCE(d.n, 0)            AS downloads_total,
-    COALESCE(d.rows, '[]'::jsonb) AS downloads,
+    COALESCE(d.n, 0)               AS downloads_total,
+    COALESCE(d.dl_rows, '[]'::jsonb) AS downloads,
     v_total
   FROM public.purchases p
-  LEFT JOIN public.user_logins ul ON ul.purchase_id = p.id
+  -- LATERAL con LIMIT 1 en vez de LEFT JOIN directo: user_logins.purchase_id
+  -- NO es único (lo único es el email), así que dos logins apuntando a la
+  -- misma compra duplicarían la fila del comprador en el panel.
+  LEFT JOIN LATERAL (
+    SELECT u.id, u.created_at
+      FROM public.user_logins u
+     WHERE u.purchase_id = p.id
+     ORDER BY u.created_at ASC
+     LIMIT 1
+  ) ul ON true
   LEFT JOIN LATERAL (
     SELECT
       count(*) AS n,
+      -- `rows` sería un alias desafortunado (ROWS es palabra reservada en las
+      -- cláusulas de ventana), de ahí dl_rows.
       jsonb_agg(
         jsonb_build_object(
           'file_type',  pd.file_type,
@@ -268,7 +279,7 @@ BEGIN
           'ip_hash',    pd.ip_hash
         )
         ORDER BY pd.created_at DESC
-      ) AS rows
+      ) AS dl_rows
     FROM public.purchase_downloads pd
     WHERE pd.purchase_id = p.id
   ) d ON true

@@ -55,6 +55,10 @@ function isMissingFunction(error: { code?: string; message?: string } | null) {
 }
 
 function intParam(v: string | null, fallback: number, min: number, max: number) {
+  // Ojo con Number(null) === 0 y Number('') === 0: sin este corte, un
+  // parámetro ausente se colaba como 0 y el clamp lo dejaba en `min`
+  // (limit=1 en vez del 100 por defecto).
+  if (v === null || v.trim() === '') return fallback
   const n = Number(v)
   if (!Number.isFinite(n)) return fallback
   return Math.min(Math.max(Math.trunc(n), min), max)
