@@ -40,6 +40,7 @@ const VALID_EVENTS = new Set([
   'chapter_start',
   'chapter_complete',
   'purchase',
+  'click_amazon',
   'view_sample_cta',
   'view_buy_cta',
   'submit_email_sample',

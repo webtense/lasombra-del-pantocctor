@@ -5,15 +5,29 @@ import { StatCard, Card } from './ui'
 
 type Summary = {
   configured: boolean
+  stripeConfigured?: boolean
   error?: string
   visits?: { last7d: number; last30d: number }
-  purchases?: { last7d: number; revenueLast7d: number; avgPriceLast7d: number; totalCount: number; revenueTotal: number }
+  purchases?: {
+    totalCount: number | null
+    today: number | null
+    last7d: number | null
+    revenueLast7d: number | null
+    avgPriceLast7d: number | null
+    revenueTotal: number | null
+    stripePaidTotal: number | null
+  }
   testers?: { count: number }
   reviews?: { count: number; avgRating: number | null }
   ga4Links?: { realtime: string; acquisition: string }
 }
 
-const eur = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0)
+const eur = (n: number | null | undefined) =>
+  n === null || n === undefined
+    ? '—'
+    : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n)
+
+const num = (n: number | null | undefined) => (n === null || n === undefined ? '—' : n)
 
 export default function SummaryTab() {
   const [data, setData] = useState<Summary | null>(null)
@@ -60,17 +74,39 @@ export default function SummaryTab() {
       </div>
 
       <div>
-        <h3 className="text-white font-semibold text-sm mb-3">Compras directas (eventos registrados en la web)</h3>
+        <h3 className="text-white font-semibold text-sm mb-3">Compras directas</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Compras (7 días)" value={data?.purchases?.last7d ?? '—'} loading={loading} />
-          <StatCard label="Ingresos (7 días)" value={data ? eur(data.purchases?.revenueLast7d || 0) : '—'} loading={loading} />
-          <StatCard label="Precio medio (7 días)" value={data ? eur(data.purchases?.avgPriceLast7d || 0) : '—'} loading={loading} />
-          <StatCard label="Ingresos totales" value={data ? eur(data.purchases?.revenueTotal || 0) : '—'} loading={loading} />
+          <StatCard label="Compras (7 días)" value={num(data?.purchases?.last7d)} sub="Stripe" loading={loading} />
+          <StatCard label="Ingresos (7 días)" value={eur(data?.purchases?.revenueLast7d)} sub="Stripe" loading={loading} />
+          <StatCard label="Precio medio (7 días)" value={eur(data?.purchases?.avgPriceLast7d)} sub="Stripe" loading={loading} />
+          <StatCard label="Ingresos totales" value={eur(data?.purchases?.revenueTotal)} sub="Stripe" loading={loading} />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <StatCard
+            label="Compras entregadas"
+            value={num(data?.purchases?.totalCount)}
+            sub="tabla purchases"
+            loading={loading}
+          />
+          <StatCard label="Compras hoy" value={num(data?.purchases?.today)} sub="tabla purchases" loading={loading} />
+          <StatCard
+            label="Cobros en Stripe"
+            value={num(data?.purchases?.stripePaidTotal)}
+            sub="sesiones pagadas"
+            loading={loading}
+          />
         </div>
         <p className="text-gray-600 text-xs mt-2">
-          Fuente: eventos <code className="text-gray-500">purchase</code> guardados en Supabase. Para las
-          transacciones reales de Stripe (con email de cliente), ver la pestaña Integraciones.
+          Los importes salen de Stripe (sesiones de pago con <code className="text-gray-500">payment_status=paid</code>);
+          el precio no se guarda en Supabase. Los recuentos de compras entregadas salen de la tabla{' '}
+          <code className="text-gray-500">purchases</code>. Si &quot;Compras entregadas&quot; y &quot;Cobros en
+          Stripe&quot; no cuadran, hay cobros que el webhook no llegó a registrar.
         </p>
+        {data && data.stripeConfigured === false && (
+          <p className="text-amber-500/80 text-xs mt-2">
+            Stripe no configurado (<code>STRIPE_SECRET_KEY</code>): las cifras en euros no están disponibles.
+          </p>
+        )}
       </div>
 
       {!data?.configured && !loading && (
