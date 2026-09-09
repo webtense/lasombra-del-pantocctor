@@ -18,7 +18,7 @@ export default function AudiobookQAClient() {
 
   const options: { value: AudioQuality; label: string; hint: string }[] = [
     { value: 'normal', label: 'Normal', hint: 'edge-tts · la que se vende hoy' },
-    { value: 'premium', label: 'Premium', hint: 'Google es-ES-Studio-F' },
+    { value: 'premium', label: 'Premium', hint: 'Google es-ES-Studio-C · voz femenina, con música y efectos' },
   ]
   const active = options.find((o) => o.value === quality)!
 
