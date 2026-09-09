@@ -119,7 +119,9 @@ DECLARE
   v_token TEXT;
   v_expires TIMESTAMPTZ;
 BEGIN
-  v_token := encode(gen_random_bytes(24), 'hex');
+  -- sha256() vive en pg_catalog (sin depender de la extensión pgcrypto,
+  -- que cuelga del esquema `extensions` fuera del search_path de esta función)
+  v_token := encode(sha256((p_tester_id::text || clock_timestamp()::text || random()::text || random()::text)::bytea), 'hex');
   v_expires := NOW() + make_interval(hours => GREATEST(1, p_ttl_hours));
 
   INSERT INTO tester_tokens (tester_id, token, expires_at)

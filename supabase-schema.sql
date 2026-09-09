@@ -21,7 +21,9 @@ CREATE INDEX IF NOT EXISTS visits_page_idx        ON visits (page);
 CREATE INDEX IF NOT EXISTS visits_session_idx     ON visits (session_id);
 
 ALTER TABLE visits ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "visits_insert" ON visits;
 CREATE POLICY "visits_insert" ON visits FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "visits_select" ON visits;
 CREATE POLICY "visits_select" ON visits FOR SELECT TO anon USING (true);
 
 -- ─────────────────────────────────────────────
@@ -48,7 +50,9 @@ CREATE INDEX IF NOT EXISTS events_type_idx       ON events (event_type);
 CREATE INDEX IF NOT EXISTS events_session_idx    ON events (session_id);
 
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "events_insert" ON events;
 CREATE POLICY "events_insert" ON events FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "events_select" ON events;
 CREATE POLICY "events_select" ON events FOR SELECT TO anon USING (true);
 
 -- ─────────────────────────────────────────────
@@ -68,7 +72,9 @@ CREATE INDEX IF NOT EXISTS leads_created_at_idx ON leads (created_at DESC);
 CREATE INDEX IF NOT EXISTS leads_source_idx     ON leads (source);
 
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "leads_insert" ON leads;
 CREATE POLICY "leads_insert" ON leads FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "leads_select" ON leads;
 CREATE POLICY "leads_select" ON leads FOR SELECT TO anon USING (true);
 
 -- Limpieza opcional: mantener últimos 180 días en visits/events
