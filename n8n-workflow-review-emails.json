@@ -1,0 +1,210 @@
+{
+  "name": "Send Review Request Emails",
+  "description": "Envía emails de solicitud de reseña 7-14 días después de la compra",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "mode": "everyNDays",
+            "value": 3
+          },
+          {
+            "mode": "atSpecificTime",
+            "value": "08:00"
+          }
+        ]
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        100,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_review_request_candidates",
+        "authentication": "predefined",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_ANON_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersJson": "{\n  \"p_min_days\": 7,\n  \"p_max_days\": 14\n}",
+        "responseFormat": "json"
+      },
+      "name": "Get Candidates (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        100
+      ],
+      "notes": "Llama a una función PostgreSQL que devuelve compradores de 7-14 días atrás sin review_email_sent"
+    },
+    {
+      "parameters": {
+        "loopOver": "={{ $json.body }}",
+        "options": {}
+      },
+      "name": "Loop Over Candidates",
+      "type": "n8n-nodes-base.loop",
+      "typeVersion": 1,
+      "position": [
+        500,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_BASE_URL }}/api/send-review-request",
+        "authentication": "none",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersJson": "{\n  \"toEmail\": \"={{ $nodeLoop.item.email }}\",\n  \"toName\": \"={{ $nodeLoop.item.name }}\",\n  \"bookTitle\": \"La Sombra del Pantocrátor\",\n  \"daysOwnedCount\": \"={{ Math.floor((new Date() - new Date($nodeLoop.item.created_at)) / (1000 * 60 * 60 * 24)) }}\",\n  \"amazonUrl\": \"https://www.amazon.es/s?k=la+sombra+del+pantocractor\"\n}",
+        "responseFormat": "json"
+      },
+      "name": "Send Review Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        100
+      ],
+      "notes": "POST /api/send-review-request para enviar el email"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/purchases",
+        "authentication": "predefined",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersJson": "{\n  \"id\": \"={{ $nodeLoop.item.id }}\",\n  \"review_email_sent\": true,\n  \"review_email_sent_at\": \"={{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "otherOptions": {
+            "queryParameters": {
+              "parameters": [
+                {
+                  "name": "id",\n                  \"value\": \"eq.{{ $nodeLoop.item.id }}\"\n                }\n              ]\n            }\n          }\n        },
+        "responseFormat": "json"
+      },
+      "name": "Mark as Sent (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        100
+      ],
+      "notes": "UPDATE purchase SET review_email_sent=true"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/review_email_logs",
+        "authentication": "predefined",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersJson": "{\n  \"email\": \"={{ $nodeLoop.item.email }}\",\n  \"purchase_id\": \"={{ $nodeLoop.item.id }}\",\n  \"status\": \"{{ $('Send Review Email').json.success ? 'sent' : 'failed' }}\",\n  \"response\": \"={{ JSON.stringify($('Send Review Email').json) }}\",\n  \"sent_at\": \"={{ new Date().toISOString() }}\"\n}",
+        "responseFormat": "json"
+      },
+      "name": "Log Email Send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1100,
+        100
+      ],
+      "notes": "Registra el envío en tabla review_email_logs para auditoría"
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Get Candidates (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Candidates (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Candidates": {
+      "main": [
+        [
+          {
+            "node": "Send Review Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Review Email": {
+      "main": [
+        [
+          {
+            "node": "Mark as Sent (Supabase)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Email Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "errorHandler": "continueOnError",
+    "timezone": "Europe/Madrid"
+  },
+  "notes": "Envía emails de solicitud de reseña a compradores de 7-14 días atrás cada 3 días a las 08:00 CET"
+}

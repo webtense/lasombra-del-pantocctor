@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Activos - Instagram/TikTok - La Sombra del Pantocrator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #8B1538; --secondary: #D4AF37; --dark: #1a1a1a; --light: #f5f5f5; --border: #e0e0e0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f9f9f9; }
+
+        header { background: linear-gradient(135deg, var(--primary) 0%, #5a0d23 100%); color: white; padding: 3rem 2rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 700; }
+        header p { font-size: 1rem; opacity: 0.95; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid var(--primary); }
+        .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.9rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .section { margin: 3rem 0; }
+        .section-title { font-size: 1.8rem; color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--secondary); }
+
+        .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .asset-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; border-top: 3px solid var(--primary); }
+        .asset-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-2px); }
+
+        .asset-header { background: linear-gradient(135deg, rgba(139,21,56,0.1), rgba(212,175,55,0.05)); padding: 1rem; border-bottom: 1px solid var(--border); }
+        .asset-name { font-weight: 600; color: var(--primary); font-size: 0.95rem; word-break: break-word; }
+        .asset-category { display: inline-block; background: var(--primary); color: white; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.5rem; }
+
+        .asset-body { padding: 1rem; }
+        .asset-info { display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; }
+        .info-label { color: #666; font-weight: 500; }
+        .info-value { color: var(--primary); font-weight: 600; text-align: right; flex: 1; margin-left: 1rem; }
+
+        .recommendation { background: #f0f8ff; border-left: 3px solid #0080ff; padding: 1rem; margin-top: 1rem; border-radius: 4px; font-size: 0.85rem; color: #333; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 2rem; }
+        thead { background: linear-gradient(135deg, var(--primary) 0%, #5a0d23 100%); color: white; }
+        th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        tbody tr:hover { background: #f5f5f5; }
+
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
+        .tab-btn { padding: 0.8rem 1.2rem; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .checklist-item { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.8rem; background: white; margin-bottom: 0.5rem; border-radius: 4px; border-left: 3px solid var(--border); }
+        .checklist-text { flex: 1; }
+
+        .code-block { background: #f5f5f5; border: 1px solid var(--border); border-radius: 4px; padding: 1rem; overflow-x: auto; font-family: 'Monaco', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.4; margin: 1rem 0; }
+
+        .specs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .spec-box { background: white; padding: 1.5rem; border-radius: 8px; border-top: 3px solid var(--secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .spec-label { color: #666; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+        .spec-value { color: var(--primary); font-size: 1.3rem; font-weight: 700; }
+
+        footer { background: var(--dark); color: white; text-align: center; padding: 2rem; margin-top: 3rem; font-size: 0.9rem; }
+
+        h3 { margin-top: 1.5rem; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            .assets-grid { grid-template-columns: 1fr; }
+            .summary { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📦 Inventario de Activos</h1>
+        <p>Instagram & TikTok — La Sombra del Pantocrator</p>
+        <small>Generado: 2026-09-14</small>
+    </header>
+
+    <div class="container">
+        <!-- RESUMEN -->
+        <section class="summary">
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Retratos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">16</div>
+                <div class="stat-label">Portadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">21</div>
+                <div class="stat-label">Total Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3000px</div>
+                <div class="stat-label">Máx. Resolución</div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 1: RETRATOS -->
+        <section class="section">
+            <h2 class="section-title">👥 RETRATOS (Personajes)</h2>
+
+            <div class="assets-grid">
+                <div class="asset-card">
+                    <div class="asset-header">
+                        <div class="asset-name">Agata Soler</div>
+                        <span class="asset-category">Retrato</span>
+                    </div>
+                    <div class="asset-body">
+                        <div class="asset-info">
+                            <div class="info-row"><span class="info-label">Archivo:</span> <span class="info-value">Agata_Soler.jpg</span></div>
+                            <div class="info-row"><span class="info-label">Dimensiones:</span> <span class="info-value">597×800px</span></div>
+                            <div class="info-row"><span class="info-label">Tamaño:</span> <span class="info-value">92K</span></div>
+                        </div>
+                        <div class="recommendation"><strong>Ideal para:</strong> Stories, bio, carrusel</div>
+                    </div>
+                </div>
+
+                <div class="asset-card">
+                    <div class="asset-header">
+                        <div class="asset-name">Anna Puig</div>
+                        <span class="asset-category">Retrato</span>
+                    </div>
+                    <div class="asset-body">
+                        <div class="asset-info">
+                            <div class="info-row"><span class="info-label">Archivo:</span> <span class="info-value">Anna_Puig.jpg</span></div>
+                            <div class="info-row"><span class="info-label">Dimensiones:</span> <span class="info-value">597×800px</span></div>
+                            <div class="info-row"><span class="info-label">Tamaño:</span> <span class="info-value">68K</span></div>
+                        </div>
+                        <div class="recommendation"><strong>Ideal para:</strong> Stories, bio, carrusel</div>
+                    </div>
+                </div>
+
+                <div class="asset-card">
+                    <div class="asset-header">
+                        <div class="asset-name">Bruno Martí</div>
+                        <span class="asset-category">Retrato</span>
+                    </div>
+                    <div class="asset-body">
+                        <div class="asset-info">
+                            <div class="info-row"><span class="info-label">Archivo:</span> <span class="info-value">Bruno_Marti.jpg</span></div>
+                            <div class="info-row"><span class="info-label">Dimensiones:</span> <span class="info-value">597×800px</span></div>
+                            <div class="info-row"><span class="info-label">Tamaño:</span> <span class="info-value">140K</span></div>
+                        </div>
+                        <div class="recommendation"><strong>Ideal para:</strong> Stories, bio, carrusel</div>
+                    </div>
+                </div>
+
+                <div class="asset-card">
+                    <div class="asset-header">
+                        <div class="asset-name">Ignaci Castells</div>
+                        <span class="asset-category">Retrato</span>
+                    </div>
+                    <div class="asset-body">
+                        <div class="asset-info">
+                            <div class="info-row"><span class="info-label">Archivo:</span> <span class="info-value">Ignaci_Castells.jpg</span></div>
+                            <div class="info-row"><span class="info-label">Dimensiones:</span> <span class="info-value">597×800px</span></div>
+                            <div class="info-row"><span class="info-label">Tamaño:</span> <span class="info-value">72K</span></div>
+                        </div>
+                        <div class="recommendation"><strong>Ideal para:</strong> Stories, bio, carrusel</div>
+                    </div>
+                </div>
+
+                <div class="asset-card">
+                    <div class="asset-header">
+                        <div class="asset-name">Laia Puig</div>
+                        <span class="asset-category">Retrato</span>
+                    </div>
+                    <div class="asset-body">
+                        <div class="asset-info">
+                            <div class="info-row"><span class="info-label">Archivo:</span> <span class="info-value">Laia_Puig.jpg</span></div>
+                            <div class="info-row"><span class="info-label">Dimensiones:</span> <span class="info-value">597×800px</span></div>
+                            <div class="info-row"><span class="info-label">Tamaño:</span> <span class="info-value">176K</span></div>
+                        </div>
+                        <div class="recommendation"><strong>Ideal para:</strong> Stories, bio, carrusel</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: PORTADAS -->
+        <section class="section">
+            <h2 class="section-title">📚 PORTADAS (Book Covers)</h2>
+
+            <table>
+                <thead>
+                    <tr><th>Nombre</th><th>Dimensiones</th><th>Tamaño</th><th>Plataforma</th></tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #fff3e0;"><td><strong>portada_lsp_v25_spotify_3000x3000.png</strong></td><td><strong>3000×3000px</strong></td><td><strong>912K</strong></td><td><strong>⭐ Recomendada</strong></td></tr>
+                    <tr><td>portada_lsp_v25_web_600x960.png</td><td>600×960px</td><td>160K</td><td>Web</td></tr>
+                    <tr><td>portada_lsp_v25_kdp_1600x2560.png</td><td>1600×2560px</td><td>544K</td><td>Libro</td></tr>
+                    <tr><td>portada.jpg</td><td>1696×2528px</td><td>3.6M</td><td>Web HQ</td></tr>
+                    <tr><td>portada_v25.png</td><td>600×960px</td><td>160K</td><td>Web</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SECCIÓN 3: ESPECIFICACIONES -->
+        <section class="section">
+            <h2 class="section-title">📐 ESPECIFICACIONES TÉCNICAS</h2>
+
+            <h3>Dimensiones Recomendadas por Plataforma</h3>
+
+            <table>
+                <thead>
+                    <tr><th>Plataforma</th><th>Dimensión</th><th>Aspecto</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Instagram Feed</strong></td><td>1080×1350px</td><td>4:5 (vertical)</td></tr>
+                    <tr><td><strong>Instagram Stories</strong></td><td>1080×1920px</td><td>9:16 (vertical)</td></tr>
+                    <tr><td><strong>TikTok</strong></td><td>1080×1920px</td><td>9:16 (vertical)</td></tr>
+                    <tr><td><strong>Pinterest</strong></td><td>1000×1500px</td><td>2:3 (vertical)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Optimización de Archivos Actuales</h3>
+
+            <div class="specs-grid">
+                <div class="spec-box">
+                    <div class="spec-label">Portada Spotify (3000×3000)</div>
+                    <div class="spec-value">912K</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">✅ Óptima — máxima resolución</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">Retratos (597×800)</div>
+                    <div class="spec-value">68–176K</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">✅ Óptimos — listos para redes</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">Portada Web (600×960)</div>
+                    <div class="spec-value">160K</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">✅ Óptima — ligera y escalable</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: ESTRUCTURA -->
+        <section class="section">
+            <h2 class="section-title">📁 ESTRUCTURA RECOMENDADA</h2>
+
+            <div class="code-block">INSTAGRAM_TIKTOK_ASSETS/
+├── 1-ORIGENES/
+│   ├── portadas/
+│   │   ├── portada_lsp_v25_3000x3000.png (PRINCIPAL)
+│   │   └── ...otras versiones
+│   └── personajes/ (5 retratos JPG)
+│
+├── 2-INSTAGRAM/
+│   ├── FEED/ (1080×1350px)
+│   └── STORIES/ (1080×1920px)
+│
+├── 3-TIKTOK/
+│   ├── VIDEOS/ (1080×1920px vertical)
+│   ├── TEMPLATES/
+│   └── EXPORTS/
+│
+└── INVENTORY.md
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: CHECKLIST -->
+        <section class="section">
+            <h2 class="section-title">✅ CHECKLIST DE PREPARACIÓN</h2>
+
+            <h3>Fase 1: Organización (1–2 horas)</h3>
+            <label class="checklist-item"><input type="checkbox"> Crear estructura de carpetas</label>
+            <label class="checklist-item"><input type="checkbox"> Copiar archivos fuente</label>
+
+            <h3>Fase 2: Redimensionamiento (2–3 horas)</h3>
+            <label class="checklist-item"><input type="checkbox"> Redimensionar portada a 1080×1350px (feed)</label>
+            <label class="checklist-item"><input type="checkbox"> Redimensionar portada a 1080×1920px (stories)</label>
+            <label class="checklist-item"><input type="checkbox"> Redimensionar retratos (5 personajes)</label>
+
+            <h3>Fase 3: Contenido Creativo (5–10 horas)</h3>
+            <label class="checklist-item"><input type="checkbox"> Crear 5 videos TikTok (presentación personajes)</label>
+            <label class="checklist-item"><input type="checkbox"> Crear video teaser (portada dinámica)</label>
+            <label class="checklist-item"><input type="checkbox"> Crear carrusel dinámico de personajes</label>
+            <label class="checklist-item"><input type="checkbox"> Crear videos de quotes literarios</label>
+        </section>
+
+        <!-- SECCIÓN 6: NEXT STEPS -->
+        <section class="section">
+            <h2 class="section-title">🎯 PASOS SIGUIENTES</h2>
+
+            <div class="specs-grid">
+                <div class="spec-box">
+                    <div class="spec-label">1. Crear carpetas</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Duplica la estructura y copia archivos</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">2. Redimensionar</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Genera versiones 1080×1350px y 1080×1920px</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">3. Diseñar</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Crea composiciones con textos y emojis</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">4. Videos</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Produce 5+ videos TikTok con efectos</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">5. Planificar</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Calendario editorial (30 días)</p>
+                </div>
+                <div class="spec-box">
+                    <div class="spec-label">6. Publicar</div>
+                    <p style="font-size: 0.95rem; margin-top: 0.5rem;">Usa Meta Business Suite para schedulear</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>La Sombra del Pantocrator</strong> — Inventario de Activos | Generado: 2026-09-14</p>
+        <p style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">Documento vivo — actualizar regularmente según cambios</p>
+    </footer>
+</body>
+</html>

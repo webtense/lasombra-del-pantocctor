@@ -1,0 +1,6 @@
+{
+  "name": "la-sombra-del-pantocrator",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "outputDirectory": ".next"
+}

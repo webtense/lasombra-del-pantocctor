@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "project": "La Sombra del Pantocrátor",
+    "initiative": "ARCs (Advance Reader Copies)",
+    "created_date": "2026-09-14",
+    "author": "Claude Haiku 4.5",
+    "version": "1.0",
+    "status": "Ready for implementation"
+  },
+  "google_sheet": {
+    "title": "ARCs - La Sombra del Pantocrátor (Goodreads)",
+    "sheet_id": "1nGbveN7gghxXDfi0diOSwKGWjCPtXzwOfPrbjzCBpZM",
+    "view_url": "https://docs.google.com/spreadsheets/d/1nGbveN7gghxXDfi0diOSwKGWjCPtXzwOfPrbjzCBpZM/edit",
+    "tabs": [
+      {
+        "name": "📋 Solicitudes Pendientes",
+        "type": "main",
+        "columns": {
+          "A": "Timestamp",
+          "B": "Nombre",
+          "C": "Email",
+          "D": "País",
+          "E": "Edad",
+          "F": "Géneros (Favoritos)",
+          "G": "Tiene Redes Sociales",
+          "H": "Redes Sociales (usuarios)",
+          "I": "Perfil Goodreads",
+          "J": "Promete Leer (4 semanas)",
+          "K": "Promete Reseña Amazon",
+          "L": "Promete Reseña Goodreads",
+          "M": "Autoriza Uso Marketing",
+          "N": "Formato Preferido",
+          "O": "Tipo Lectura",
+          "P": "Comentarios",
+          "Q": "Estado",
+          "R": "Fecha Envío ARC",
+          "S": "Notas Internas",
+          "T": "Recordatorio Enviado",
+          "U": "Reseña Amazon (URL)",
+          "V": "Reseña Goodreads (URL)"
+        }
+      },
+      {
+        "name": "✅ Aprobadas",
+        "type": "filter",
+        "filter_rule": "Estado = 'Aprobado'",
+        "columns": "Same as Solicitudes Pendientes"
+      },
+      {
+        "name": "❌ Rechazadas",
+        "type": "filter",
+        "filter_rule": "Estado = 'Rechazado'",
+        "columns": "Same as Solicitudes Pendientes"
+      },
+      {
+        "name": "📊 KPIs + Análisis",
+        "type": "dashboard",
+        "metrics": [
+          {
+            "name": "Total Solicitudes",
+            "formula": "=COUNTA(Pendientes!A2:A) + COUNTA(Aprobadas!A2:A) + COUNTA(Rechazadas!A2:A)"
+          },
+          {
+            "name": "Solicitudes Aprobadas",
+            "formula": "=COUNTA(Aprobadas!A2:A)"
+          },
+          {
+            "name": "Tasa Aprobación (%)",
+            "formula": "=(B2/B1)*100"
+          },
+          {
+            "name": "Reseñas Amazon Completadas",
+            "formula": "=COUNTIF(Aprobadas!U:U, \"<>\")"
+          },
+          {
+            "name": "Reseñas Goodreads Completadas",
+            "formula": "=COUNTIF(Aprobadas!V:V, \"<>\")"
+          }
+        ]
+      },
+      {
+        "name": "📌 Plantillas",
+        "type": "reference",
+        "content": "Email templates para Brevo (ver arc_email_templates.md)"
+      }
+    ]
+  },
+  "google_form": {
+    "title": "Solicita tu copia ARC - La Sombra del Pantocrátor",
+    "description": "¿Quieres leer antes de tiempo? Solicita tu copia gratuita del eBook.",
+    "linked_sheet_id": "1nGbveN7gghxXDfi0diOSwKGWjCPtXzwOfPrbjzCBpZM",
+    "fields": [
+      {
+        "order": 1,
+        "type": "section",
+        "title": "DATOS PERSONALES",
+        "description": ""
+      },
+      {
+        "order": 2,
+        "type": "short_text",
+        "title": "Nombre completo",
+        "required": true
+      },
+      {
+        "order": 3,
+        "type": "email",
+        "title": "Email",
+        "required": true,
+        "description": "Te enviaremos tu ARC aquí"
+      },
+      {
+        "order": 4,
+        "type": "dropdown",
+        "title": "País / Región",
+        "required": true,
+        "options": ["España", "Latinoamérica", "Europa (excluida España)", "Otros"]
+      },
+      {
+        "order": 5,
+        "type": "short_text",
+        "title": "Teléfono (opcional)",
+        "required": false,
+        "description": "Formato: +34 XXXXXXXXX"
+      },
+      {
+        "order": 6,
+        "type": "section",
+        "title": "PERFIL DE LECTOR",
+        "description": ""
+      },
+      {
+        "order": 7,
+        "type": "dropdown",
+        "title": "¿Cuál es tu edad?",
+        "required": true,
+        "options": ["13-17", "18-25", "26-35", "36-45", "46-55", "56-65", "65+"]
+      },
+      {
+        "order": 8,
+        "type": "checkboxes",
+        "title": "Géneros favoritos",
+        "required": true,
+        "min_choices": 1,
+        "options": [
+          "Fantasía épica",
+          "Paranormal/Sobrenatural",
+          "Aventura",
+          "Drama",
+          "Romántica",
+          "Misterio/Thriller",
+          "Ciencia ficción",
+          "Otros"
+        ]
+      },
+      {
+        "order": 9,
+        "type": "multiple_choice",
+        "title": "¿Tienes presencia en redes sociales?",
+        "required": false,
+        "options": ["Sí", "No", "Prefiero no decir"]
+      },
+      {
+        "order": 10,
+        "type": "short_text",
+        "title": "¿Cuáles son tus redes sociales?",
+        "required": false,
+        "description": "Ej: @miusuario (Instagram, TikTok, YouTube)",
+        "show_if": "previous_field_equals_si"
+      },
+      {
+        "order": 11,
+        "type": "short_text",
+        "title": "Perfil de Goodreads",
+        "required": false,
+        "description": "Tu URL de Goodreads (opcional)"
+      },
+      {
+        "order": 12,
+        "type": "section",
+        "title": "COMPROMISO CON EL ARC",
+        "description": "Confirma que estás dispuesto a cumplir estos compromisos"
+      },
+      {
+        "order": 13,
+        "type": "multiple_choice",
+        "title": "Prometo leer el libro en 4 semanas",
+        "required": true,
+        "options": ["Sí, me comprometo", "No puedo comprometer"]
+      },
+      {
+        "order": 14,
+        "type": "multiple_choice",
+        "title": "Prometo dejar reseña en Amazon",
+        "required": true,
+        "options": ["Sí, dejaré reseña", "No puedo prometer"]
+      },
+      {
+        "order": 15,
+        "type": "multiple_choice",
+        "title": "Prometo dejar reseña en Goodreads",
+        "required": true,
+        "options": ["Sí, dejaré reseña", "No puedo prometer"]
+      },
+      {
+        "order": 16,
+        "type": "checkbox",
+        "title": "Autorizas el uso de tu reseña en marketing",
+        "required": false,
+        "description": "Podemos usar tu reseña (con crédito) en web/redes"
+      },
+      {
+        "order": 17,
+        "type": "section",
+        "title": "FORMATO Y PREFERENCIAS",
+        "description": ""
+      },
+      {
+        "order": 18,
+        "type": "multiple_choice",
+        "title": "Formato preferido para tu ARC",
+        "required": true,
+        "options": [
+          "PDF (recomendado para lectores de pantalla)",
+          "ePub (para Kindle, Apple Books)",
+          "Ambos"
+        ]
+      },
+      {
+        "order": 19,
+        "type": "multiple_choice",
+        "title": "¿Cómo prefieres leer?",
+        "required": false,
+        "options": [
+          "En pantalla (ebook reader, tablet, móvil)",
+          "En papel (impresión)",
+          "Audiolibro (si está disponible)",
+          "No importa"
+        ]
+      },
+      {
+        "order": 20,
+        "type": "section",
+        "title": "COMENTARIOS FINALES",
+        "description": ""
+      },
+      {
+        "order": 21,
+        "type": "paragraph",
+        "title": "Algo más que quieras contarnos",
+        "required": false,
+        "description": "Cuéntanos si tienes blog, podcast, comunidad de lectores, etc."
+      }
+    ],
+    "settings": {
+      "collect_email_addresses": true,
+      "show_progress_bar": true,
+      "show_link_to_previous": false,
+      "allow_respondents_to_edit_after_submit": false,
+      "limited_distribution": false,
+      "shuffle_question_order": false,
+      "confirmation_message": "¡Enhorabuena! Tu solicitud de ARC ha sido recibida. Revisaremos tu perfil y te contactaremos en 2-3 días con los detalles de tu descarga."
+    }
+  },
+  "theme": {
+    "colors": {
+      "primary": "RGB(45, 75, 145)",
+      "secondary": "RGB(128, 0, 128)",
+      "background": "RGB(255, 255, 255)"
+    },
+    "font": "Roboto",
+    "header_image": "/05-PORTADAS/kdp/portada_definitiva_v2_kdp_1600x2560.jpg",
+    "header_image_height_px": 400
+  },
+  "brevo_integration": {
+    "list_existing": "La Sombra del Pantocrátor",
+    "list_new": "ARC Aprobados",
+    "templates": {
+      "confirmation": "ARC_Confirmacion",
+      "approval": "ARC_Aprobado",
+      "reminder_week2": "ARC_Recordatorio_Semana2",
+      "reminder_week4": "ARC_Recordatorio_Semana4_Reseña",
+      "thank_you": "ARC_Agradecimiento"
+    }
+  },
+  "distribution": {
+    "formats": {
+      "pdf": {
+        "filename": "LaSombraPantocrator_ARC_v1.pdf",
+        "watermark": "ADVANCE READER COPY - Not for Distribution"
+      },
+      "epub": {
+        "filename": "LaSombraPantocrator_ARC_v1.epub"
+      },
+      "audiobook_preview": {
+        "filename": "LaSombraPantocrator_ARC_Preview_1h.m4b",
+        "voice": "es-ES-AlvaroNeural",
+        "duration_minutes": 60,
+        "bitrate_kbps": 192
+      }
+    },
+    "hosting": [
+      "Google Drive (private, link access)",
+      "Dropbox (optional, temporary links)",
+      "Direct email (optional)"
+    ]
+  },
+  "kpis": {
+    "targets": {
+      "total_solicitudes": {
+        "value": 150,
+        "range": "100-200"
+      },
+      "approval_rate": {
+        "value": 75,
+        "unit": "%",
+        "range": "70-80%"
+      },
+      "reviews_completed": {
+        "value": 50,
+        "unit": "%",
+        "range": ">50% of approved"
+      },
+      "average_rating": {
+        "value": 4.0,
+        "unit": "stars",
+        "range": "4.0+"
+      },
+      "sales_from_arcs": {
+        "value": 10,
+        "unit": "books",
+        "tracking": "unique discount code"
+      }
+    }
+  },
+  "timeline": {
+    "phase_1": {
+      "date": "2026-09-14",
+      "tasks": [
+        "Create Google Form",
+        "Link Form to Sheet",
+        "Test with dummy response",
+        "Setup email notifications"
+      ]
+    },
+    "phase_2": {
+      "date": "2026-09-15",
+      "tasks": [
+        "Prepare ARC files (PDF, ePub)",
+        "Upload to Google Drive",
+        "Setup Brevo templates"
+      ]
+    },
+    "phase_3": {
+      "date": "2026-09-16-18",
+      "tasks": [
+        "Publish Form on web",
+        "Social media announcements",
+        "Email Brevo campaign"
+      ]
+    },
+    "phase_4": {
+      "date": "2026-09-21-28",
+      "tasks": [
+        "Review and approve applications",
+        "Send ARCs to approved readers",
+        "Setup automated reminders"
+      ]
+    }
+  }
+}

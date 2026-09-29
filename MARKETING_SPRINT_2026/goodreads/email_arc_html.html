@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oferta ARC - La Sombra del Pantocrátor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid #e94560;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-style: italic;
+        }
+        .cover-section {
+            padding: 30px 20px;
+            text-align: center;
+            background: #f9f9f9;
+            border-bottom: 1px solid #eee;
+        }
+        .cover-image {
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+        }
+        .book-meta {
+            display: inline-block;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 6px;
+            border-left: 4px solid #e94560;
+            text-align: left;
+        }
+        .book-meta p {
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .book-meta strong {
+            color: #1a1a2e;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #1a1a2e;
+            font-size: 24px;
+            margin: 25px 0 15px 0;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+        }
+        .content p {
+            margin: 15px 0;
+            line-height: 1.8;
+            color: #555;
+        }
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight strong {
+            color: #1a1a2e;
+        }
+        .benefits {
+            list-style: none;
+            margin: 20px 0;
+        }
+        .benefits li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #555;
+        }
+        .benefits li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #e94560;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #e94560 0%, #d63a52 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+        }
+        .faq {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .faq-item {
+            margin: 15px 0;
+        }
+        .faq-item strong {
+            color: #1a1a2e;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .faq-item p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .urgency {
+            background: linear-gradient(135deg, #e94560 0%, #d63a52 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 25px 0;
+            font-weight: 600;
+        }
+        .footer {
+            background: #1a1a2e;
+            color: #aaa;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 13px;
+            border-top: 1px solid #333;
+        }
+        .footer p {
+            margin: 8px 0;
+        }
+        .signature {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .signature p {
+            margin: 5px 0;
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+        .social-links {
+            margin: 10px 0;
+        }
+        .social-links a {
+            color: #e94560;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 25px 0;
+        }
+        .steps {
+            counter-reset: step-counter;
+            margin: 20px 0;
+        }
+        .steps li {
+            list-style: none;
+            margin: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+        .steps li:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #e94560;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .cta-button {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>¡Solicita tu ARC!</h1>
+            <p>Copia anticipada de "La Sombra del Pantocrátor"</p>
+        </div>
+
+        <!-- BOOK COVER & META -->
+        <div class="cover-section">
+            <!-- NOTA: Reemplazar SRC con URL real de la portada -->
+            <img src="https://via.placeholder.com/150x220?text=Portada+Libro" alt="La Sombra del Pantocrátor" class="cover-image">
+            <div class="book-meta">
+                <p><strong>Género:</strong> Thriller Tecnológico</p>
+                <p><strong>Extensión:</strong> 73.211 palabras</p>
+                <p><strong>Incluye:</strong> EPUB + Audiolibro MP3</p>
+                <p><strong>Duración:</strong> 14h 40min</p>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+            <h2>¡Hola!</h2>
+            <p>
+                Soy <strong>Andrés Sánchez Serrano</strong>, autor de <strong>"La Sombra del Pantocrátor"</strong>,
+                y estoy buscando <strong>lectores adelantados</strong> que quieran leer mi libro antes de su
+                publicación oficial.
+            </p>
+
+            <div class="highlight">
+                <strong>¿Qué es un ARC (Advanced Reader Copy)?</strong><br>
+                Una copia anticipada del libro que te enviamos gratuitamente antes del lanzamiento oficial.
+                A cambio, únicamente te pedimos que dejes una reseña honesta en Goodreads.
+            </div>
+
+            <h2>Sobre el libro</h2>
+            <p>
+                <strong>"La Sombra del Pantocrátor"</strong> es un thriller que mezcla tecnología, peligro y pasión.
+                La novela sigue a dos personajes que se internan en una conspiración de vigilancia total que se
+                expande desde el Pirineo hasta Europa.
+            </p>
+            <p style="font-style: italic; color: #666;">
+                Entre deseo, peligro y archivos cifrados, ambos descubren que el nombre detrás de todo lo resume bien:
+                Pantocrator.
+            </p>
+
+            <h2>¿Qué recibirás?</h2>
+            <ul class="benefits">
+                <li><strong>Versión EPUB completa</strong> — Compatible con cualquier dispositivo (Kindle, tablets, PC, etc.)</li>
+                <li><strong>Audiolibro en MP3</strong> — Los 136 segmentos (14h 40m) de narración profesional</li>
+                <li><strong>Comunidad privada</strong> — Acceso a lectores adelantados para comentarios</li>
+                <li><strong>Contacto directo</strong> — Puedes escribirme si tienes preguntas sobre el libro</li>
+            </ul>
+
+            <h2>¿Cómo solicitar tu ARC?</h2>
+            <ol class="steps">
+                <li>Haz clic en el botón "Solicitar ahora" abajo</li>
+                <li>Completa el formulario con tu nombre, email y Goodreads</li>
+                <li>Cuéntame por qué quieres leer este libro (una frase es suficiente)</li>
+                <li>¡Eso es todo! Recibirás tu ARC en 3-5 días hábiles</li>
+            </ol>
+
+            <a href="https://forms.google.com/YOUR-FORM-ID" class="cta-button">Solicitar tu ARC</a>
+
+            <div class="urgency">
+                📌 Solo 50 copias disponibles — ¡No esperes!
+            </div>
+
+            <h2>Lo que te pedimos</h2>
+            <ul class="benefits">
+                <li>Lee el libro a tu ritmo (sin fecha límite)</li>
+                <li>Deja una reseña en Goodreads cuando termines</li>
+                <li>Sé honesto: reseñas críticas son tan valiosas como las positivas</li>
+            </ul>
+
+            <h2>Preguntas Frecuentes</h2>
+            <div class="faq">
+                <div class="faq-item">
+                    <strong>¿Cuándo se publica el libro?</strong>
+                    <p>La publicación oficial está prevista para <strong>[FECHA A COMPLETAR]</strong>. Los ARCs se envían 2-3 semanas antes.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>¿Tengo que escribir una reseña positiva?</strong>
+                    <p>No. Queremos tu opinión honesta. Si el libro no te gusta, está bien decirlo.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>¿Puedo compartir el ARC con otros?</strong>
+                    <p>Preferimos que no. Los ARCs están personalizados y diseñados solo para ti. Si alguien más quiere uno, que me lo haga saber directamente.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>¿Hay límite de copias?</strong>
+                    <p>Sí, tenemos 50 copias disponibles. Te recomendamos solicitar cuanto antes.</p>
+                </div>
+
+                <div class="faq-item">
+                    <strong>¿Tengo que tener Goodreads para participar?</strong>
+                    <p>Sí, necesitamos tu usuario de Goodreads para que puedas dejar la reseña fácilmente.</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p style="text-align: center; color: #999; font-size: 14px;">
+                Si tienes más preguntas, responde directamente a este email o contáctame en las redes.
+            </p>
+
+            <div class="signature">
+                <p>Gracias por tu interés en "La Sombra del Pantocrátor".</p>
+                <p style="margin-top: 15px;">
+                    Un cordial saludo,<br>
+                    <strong>Andrés Sánchez Serrano</strong><br>
+                    Autor, "La Sombra del Pantocrátor"
+                </p>
+                <div class="social-links">
+                    <!-- NOTA: Reemplazar con links reales -->
+                    <a href="https://instagram.com/USUARIO">Instagram</a>
+                    <a href="https://goodreads.com/author/USUARIO">Goodreads</a>
+                    <a href="https://lasombradelpantocrator.com">Web</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>© 2026 Andrés Sánchez Serrano. Todos los derechos reservados.</p>
+            <p style="margin-top: 15px; font-size: 11px;">
+                Este es un email de promoción de "La Sombra del Pantocrátor".
+                Si no quieres recibir más, <a href="#" style="color: #e94560;">puedes darte de baja aquí</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

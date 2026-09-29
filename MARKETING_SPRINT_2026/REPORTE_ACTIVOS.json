@@ -1,0 +1,217 @@
+{
+  "timestamp": "2026-09-14T14:11:03.754225",
+  "project": "La Sombra del Pantocrator",
+  "sprint": "Marketing 2026",
+  "assets": {
+    "portada": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/05-PORTADAS/kdp/portada_definitiva_v2_kdp_1600x2560.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 517295,
+          "size_kb": 505.1708984375
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 628899,
+          "size_kb": 614.1591796875
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 831814,
+          "size_kb": 812.318359375
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 831814,
+          "size_kb": 812.318359375
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 831814,
+          "size_kb": 812.318359375
+        }
+      }
+    },
+    "Bruno_Marti": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/02-WEB/public/personajes/Bruno_Marti.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 325682,
+          "size_kb": 318.048828125
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 412780,
+          "size_kb": 403.10546875
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 494304,
+          "size_kb": 482.71875
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 494304,
+          "size_kb": 482.71875
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 494304,
+          "size_kb": 482.71875
+        }
+      }
+    },
+    "Laia_Puig": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/02-WEB/public/personajes/Laia_Puig.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 406168,
+          "size_kb": 396.6484375
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 502297,
+          "size_kb": 490.5244140625
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 593415,
+          "size_kb": 579.5068359375
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 593415,
+          "size_kb": 579.5068359375
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 593415,
+          "size_kb": 579.5068359375
+        }
+      }
+    },
+    "Agata_Soler": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/02-WEB/public/personajes/Agata_Soler.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 276121,
+          "size_kb": 269.6494140625
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 339608,
+          "size_kb": 331.6484375
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 438432,
+          "size_kb": 428.15625
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 438432,
+          "size_kb": 428.15625
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 438432,
+          "size_kb": 428.15625
+        }
+      }
+    },
+    "Anna_Puig": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/02-WEB/public/personajes/Anna_Puig.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 226159,
+          "size_kb": 220.8583984375
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 269137,
+          "size_kb": 262.8291015625
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 317750,
+          "size_kb": 310.302734375
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 317750,
+          "size_kb": 310.302734375
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 317750,
+          "size_kb": 310.302734375
+        }
+      }
+    },
+    "Ignaci_Castells": {
+      "source": "/home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/02-WEB/public/personajes/Ignaci_Castells.jpg",
+      "sizes": {
+        "instagram/post_cuadrado": {
+          "width": 1080,
+          "height": 1080,
+          "size_bytes": 213792,
+          "size_kb": 208.78125
+        },
+        "instagram/post_vertical": {
+          "width": 1080,
+          "height": 1350,
+          "size_bytes": 271843,
+          "size_kb": 265.4716796875
+        },
+        "instagram/reels": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 361757,
+          "size_kb": 353.2783203125
+        },
+        "instagram/story": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 361757,
+          "size_kb": 353.2783203125
+        },
+        "tiktok/video": {
+          "width": 1080,
+          "height": 1920,
+          "size_bytes": 361757,
+          "size_kb": 353.2783203125
+        }
+      }
+    }
+  }
+}

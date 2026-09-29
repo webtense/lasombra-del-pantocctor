@@ -1,0 +1,169 @@
+================================================================================
+QUICK REFERENCE - Activos Redimensionados
+La Sombra del Pantocrátor | Sprint Marketing 2026
+================================================================================
+
+CARPETA BASE:
+  /home/asanchez/Documentos/@PERSONAL/Proyectos/Personal/LaSombraDelPantocrator/
+  └── 02-WEB/MARKETING_SPRINT_2026/activos_redimensionados/
+
+================================================================================
+TAMAÑOS ESTÁNDAR
+================================================================================
+
+INSTAGRAM:
+  ├─ Post Cuadrado    1080x1080  (feed tradicional)
+  ├─ Post Vertical    1080x1350  (mejor engagement)
+  ├─ Stories          1080x1920  (9:16, desaparece en 24h)
+  └─ Reels            1080x1920  (9:16, máxima viralidad)
+
+TIKTOK:
+  └─ Video            1080x1920  (9:16)
+
+================================================================================
+ACTIVOS DISPONIBLES (6 por formato)
+================================================================================
+
+PORTADAS:
+  ✓ portada_lsp.jpg          Portada v2 KDP (1600x2560) redimensionada
+
+PERSONAJES:
+  ✓ Bruno_Marti.jpg          Protagonista (306 KB base)
+  ✓ Laia_Puig.jpg            Investigadora (380 KB base)
+  ✓ Agata_Soler.jpg          (251 KB base)
+  ✓ Anna_Puig.jpg            (194 KB base) — LIGERA
+  ✓ Ignaci_Castells.jpg      (195 KB base)
+
+================================================================================
+ARCHIVOS POR PLATAFORMA
+================================================================================
+
+instagram/post_cuadrado/      (6 JPGs, ~1.1 MB)
+  ├─ portada_lsp.jpg         336.6 KB
+  ├─ Bruno_Marti.jpg         306.1 KB
+  ├─ Laia_Puig.jpg           380.0 KB
+  ├─ Agata_Soler.jpg         251.0 KB
+  ├─ Anna_Puig.jpg           194.4 KB
+  └─ Ignaci_Castells.jpg     195.1 KB
+
+instagram/post_vertical/      (6 JPGs, ~1.6 MB)
+  ├─ portada_lsp.jpg         501.1 KB
+  ├─ Bruno_Marti.jpg         412.8 KB
+  ├─ Laia_Puig.jpg           511.5 KB
+  ├─ Agata_Soler.jpg         340.4 KB
+  ├─ Anna_Puig.jpg           263.3 KB
+  └─ Ignaci_Castells.jpg     265.5 KB
+
+instagram/story/              (6 JPGs, ~2.3 MB)
+  ├─ portada_lsp.jpg         767.9 KB
+  ├─ Bruno_Marti.jpg         456.9 KB
+  ├─ Laia_Puig.jpg           564.2 KB
+  ├─ Agata_Soler.jpg         379.1 KB
+  ├─ Anna_Puig.jpg           294.2 KB
+  └─ Ignaci_Castells.jpg     296.8 KB
+
+instagram/reels/              (6 JPGs, ~2.3 MB)
+  ├─ portada_lsp.jpg         767.9 KB
+  ├─ Bruno_Marti.jpg         456.9 KB
+  ├─ Laia_Puig.jpg           564.2 KB
+  ├─ Agata_Soler.jpg         379.1 KB
+  ├─ Anna_Puig.jpg           294.2 KB
+  └─ Ignaci_Castells.jpg     296.8 KB
+
+tiktok/video/                 (6 JPGs, ~2.3 MB)
+  ├─ portada_lsp.jpg         767.9 KB
+  ├─ Bruno_Marti.jpg         456.9 KB
+  ├─ Laia_Puig.jpg           564.2 KB
+  ├─ Agata_Soler.jpg         379.1 KB
+  ├─ Anna_Puig.jpg           294.2 KB
+  └─ Ignaci_Castells.jpg     296.8 KB
+
+TOTAL: 30 archivos | 9.6 MB
+
+================================================================================
+PUBLICACIÓN RECOMENDADA (TIMELINE)
+================================================================================
+
+SEMANA 1 (14-20 Sep):
+  ├─ Instagram Stories: Teaser personajes (uno/día)
+  ├─ TikTok: Presentación Bruno (trending sound)
+  └─ Instagram Reels: Primer personaje con música
+
+SEMANA 2 (21-27 Sep):
+  ├─ Instagram Post Vertical: Portada + copy
+  ├─ TikTok: Presentación Laia (datos curiosos)
+  └─ Instagram Carousel: 2-3 personajes
+
+SEMANA 3 (28-04 Oct):
+  ├─ Instagram: User-generated content, reviews
+  ├─ TikTok: Citas del libro con trending sound
+  └─ Stories: Countdown al lanzamiento
+
+SEMANA 4 (05-11 Oct):
+  ├─ Instagram Post Cuadrado: Portada destacada
+  ├─ TikTok: "Acaba de llegar" + trailer
+  └─ Máximo empuje a compra en Amazon
+
+================================================================================
+HORARIOS ÓPTIMOS (CET)
+================================================================================
+
+INSTAGRAM:
+  • Stories: 08:00-12:00 (mañana), 19:00-21:00 (tarde)
+  • Posts: JUE-DOM, 19:00-21:00
+  • Reels: VIE-DOM, 20:00-22:00
+
+TIKTOK:
+  • LUN-DOM: 18:00-23:00
+  • Mejor: VIE-DOM, 20:00-22:00
+
+================================================================================
+HASHTAGS (COPIAR-PEGAR)
+================================================================================
+
+INSTAGRAM:
+  #BookTok #SombraDelPantocrator #NovelaNegra #LiteraturaMistery
+  #AutorEspañol #LibroPublicado #Mistery #Thriller #Lectura
+  #AmanteDeLosLibros #NovelaNumerada #AmazonBooks #LeereEspañol
+  #BookstagramEspña #Bookstagram #IndieAuthor #SelfPublished
+  #LeeresMiPasion #RecommendedBooks #MustRead #Bestseller
+  [TOTAL: 20-30 hashtags]
+
+TIKTOK:
+  #BookTok #SombraDelPantocrator #NovelaNegra #Lectura
+  #AmanteDeLosLibros #BookstagramEspañol #MustRead #Bestseller
+  #AutorEspañol #MiseryThriller #SpanishAuthor #IndieBooks
+  [TOTAL: 3-5 en descripción + 8-10 en comenetarios]
+
+================================================================================
+COMANDOS ÚTILES (Terminal)
+================================================================================
+
+Ver estructura completa:
+  find activos_redimensionados -type f | wc -l        # Contar archivos
+  du -sh activos_redimensionados                       # Tamaño total
+  ls -lhR activos_redimensionados                      # Árbol detallado
+
+Regenerar activos (si hay cambios en fuentes):
+  cd 02-WEB/MARKETING_SPRINT_2026
+  python3 ../../../../../../redimensionar_activos.py   # Script original
+
+Copiar a otra carpeta:
+  cp -r activos_redimensionados ~/Descargas/           # Backup local
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+✓ Formato: JPEG (calidad 95)
+✓ Color space: RGB
+✓ Compresión: Máxima nitidez + tamaño optimizado
+✓ Fondo: Blanco (padding si es necesario para mantener proporción)
+✓ Aspect ratio: Original mantenido (no distorsionado)
+
+Generación: 2026-09-14 | Script: redimensionar_activos.py
+Fuentes:
+  - Portadas: /05-PORTADAS/kdp/portada_definitiva_v2_kdp_1600x2560.jpg
+  - Personajes: /02-WEB/public/personajes/*.jpg
+
+================================================================================

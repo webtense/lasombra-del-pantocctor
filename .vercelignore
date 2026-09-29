@@ -1,0 +1,11 @@
+# Archivos grandes que no caben en Vercel (>100MB)
+public/audiolibro_premium.m4b
+public/sample.mp3
+public/manuscrito.pdf
+public/audiolibro_limpio.m4b
+public/downloads/
+
+# Node modules
+node_modules/
+.next/
+.git/
